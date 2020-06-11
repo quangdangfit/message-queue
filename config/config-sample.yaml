@@ -1,0 +1,12 @@
+mongodb:
+  host: localhost:27017
+  database: database
+  env: native
+  user: ######
+  pass: ######
+
+amqp:
+  url:	##################
+  exchange_name: exchange_name
+  exchange_type: topic
+  queue_name: queue_name
