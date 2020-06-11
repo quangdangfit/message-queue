@@ -1,7 +1,6 @@
 package dbs
 
 import (
-	"encoding/json"
 	"gomq/models"
 
 	"gopkg.in/mgo.v2/bson"
@@ -18,19 +17,17 @@ const (
 	InMessageStatusWaitCanceled = "canceled"
 )
 
-func AddInMessage(payload map[string]interface{}) (*models.InMessage, error) {
-	var message models.InMessage
-
+func AddInMessage(message *models.InMessage, strRoutingKey string) (
+	*models.InMessage, error) {
 	routingKey := models.RoutingKey{}
-	Database.FindOne(CollectionRoutingKey, bson.M{"name": payload["routing_key"]}, "", &routingKey)
+	Database.FindOne(CollectionRoutingKey,
+		bson.M{"name": strRoutingKey}, "", &routingKey)
 
-	bytesMsg, _ := json.Marshal(payload)
-	json.Unmarshal(bytesMsg, &message)
 	message.RoutingKey = routingKey
 
 	err := Database.InsertOne(CollectionInMessage, message)
 	if err != nil {
 		return nil, err
 	}
-	return &message, nil
+	return message, nil
 }

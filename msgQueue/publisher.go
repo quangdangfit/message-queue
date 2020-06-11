@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"gomq/config"
 	"gomq/models"
+	"gomq/msgHandler"
+	"transport/lib/utils/logger"
 
 	"github.com/streadway/amqp"
 )
@@ -26,20 +28,24 @@ func NewPublisher() Publisher {
 		ExchangeName: config.Config.AMQP.ExchangeName,
 		ExchangeType: config.Config.AMQP.ExchangeType,
 	}
-	pub.NewConnection()
+	pub.newConnection()
 	return &pub
 }
 
-func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (err error) {
-	defer pub.CloseConnection()
+func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
+	err error) {
+
+	defer pub.closeConnection()
 
 	// Reliable publisher confirms require confirm.select support from the connection.
 	if reliable {
 		if err := pub.channel.Confirm(false); err != nil {
-			return fmt.Errorf("Channel could not be put into confirm mode: %s", err)
+			logger.Errorf(
+				"Channel could not be put into confirm mode: %s", err)
+			return err
 		}
 		confirms := pub.channel.NotifyPublish(make(chan amqp.Confirmation, 1))
-		defer pub.ConfirmOne(message, confirms)
+		defer pub.confirmOne(message, confirms)
 	}
 
 	msgObj, _ := json.Marshal(message)
@@ -60,5 +66,9 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (err er
 	); err != nil {
 		return fmt.Errorf("Exchange Publish: %s", err)
 	}
+
+	outHandler := msgHandler.NewOutMessageHandler()
+	outHandler.HandleMessage(message)
+
 	return nil
 }

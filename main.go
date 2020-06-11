@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gomq/msgHandler"
+	"gomq/msgQueue"
 	"gomq/route"
 	"net/http"
 	"os"
@@ -52,8 +52,8 @@ func main() {
 		}
 	}()
 
-	receiver := msgHandler.NewReceiver()
-	receiver.Consuming()
+	consumer := msgQueue.NewConsumer()
+	consumer.RunConsumer(nil)
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 10 seconds.

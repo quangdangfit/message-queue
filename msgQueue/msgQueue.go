@@ -10,14 +10,15 @@ import (
 )
 
 type MessageQueue interface {
-	NewConnection() error
-	CloseConnection() error
-	NewChannel() error
-	CloseChannel() error
-	DeclareExchange() error
-	DeclareQueue() error
-	BindQueue(routingKey string) error
-	ConfirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool
+	newConnection() error
+	closeConnection() error
+	newChannel() error
+	closeChannel() error
+	declareExchange() error
+	declareQueue() error
+	bindQueue(routingKey string) error
+	confirmOne(message *models.OutMessage,
+		confirms <-chan amqp.Confirmation) bool
 }
 
 type messageQueue struct {
@@ -28,21 +29,21 @@ type messageQueue struct {
 	isClosed   bool
 }
 
-func (mq *messageQueue) NewConnection() error {
+func (mq *messageQueue) newConnection() error {
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
 	if err != nil {
 		return err
 	}
 	mq.connection = conn
-	mq.NewChannel()
+	mq.newChannel()
 	return nil
 }
 
-func (mq *messageQueue) CloseConnection() error {
+func (mq *messageQueue) closeConnection() error {
 	if mq.isClosed {
 		return nil
 	}
-	mq.CloseChannel()
+	mq.closeChannel()
 
 	if mq.connection != nil {
 		if err := mq.connection.Close(); err != nil {
@@ -53,7 +54,7 @@ func (mq *messageQueue) CloseConnection() error {
 	return nil
 }
 
-func (mq *messageQueue) NewChannel() error {
+func (mq *messageQueue) newChannel() error {
 	channel, err := mq.connection.Channel()
 	if err != nil {
 		logger.Error("Failed to new connection: ", err)
@@ -63,7 +64,7 @@ func (mq *messageQueue) NewChannel() error {
 	return nil
 }
 
-func (mq *messageQueue) CloseChannel() error {
+func (mq *messageQueue) closeChannel() error {
 	if mq.isClosed {
 		return nil
 	}
@@ -77,7 +78,7 @@ func (mq *messageQueue) CloseChannel() error {
 	return nil
 }
 
-func (mq *messageQueue) DeclareExchange() error {
+func (mq *messageQueue) declareExchange() error {
 	if err := mq.channel.ExchangeDeclare(
 		mq.config.ExchangeName, // name
 		mq.config.ExchangeType, // type
@@ -93,7 +94,7 @@ func (mq *messageQueue) DeclareExchange() error {
 	return nil
 }
 
-func (mq *messageQueue) DeclareQueue() error {
+func (mq *messageQueue) declareQueue() error {
 	if _, err := mq.channel.QueueDeclare(
 		mq.config.QueueName,
 		false,
@@ -108,7 +109,7 @@ func (mq *messageQueue) DeclareQueue() error {
 	return nil
 }
 
-func (mq *messageQueue) BindQueue(routingKey string) error {
+func (mq *messageQueue) bindQueue(routingKey string) error {
 	if err := mq.channel.QueueBind(
 		mq.config.QueueName,             // name
 		routingKey,                      // key
@@ -122,15 +123,21 @@ func (mq *messageQueue) BindQueue(routingKey string) error {
 	return nil
 }
 
-func (mq *messageQueue) ConfirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool {
+func (mq *messageQueue) confirmOne(message *models.OutMessage,
+	confirms <-chan amqp.Confirmation) bool {
+
 	confirmed := <-confirms
 	if confirmed.Ack {
-		logger.Info("Confirmed delivery with delivery tag: ", confirmed.DeliveryTag)
+		logger.Info("Confirmed delivery with delivery tag: ",
+			confirmed.DeliveryTag)
+
 		message.Status = dbs.OutMessageStatusSent
 		return true
 	}
 
-	logger.Info("Failed delivery of delivery tag: ", confirmed.DeliveryTag)
+	logger.Info("Failed delivery of delivery tag: ",
+		confirmed.DeliveryTag)
+
 	message.Status = dbs.OutMessageStatusSentWait
 	return false
 }
