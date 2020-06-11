@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"gomq/msgQueue"
-	"gomq/route"
+	"gomq/routers"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,7 +41,7 @@ func main() {
 		e.DefaultHTTPErrorHandler(err, c)
 	}
 
-	route.Message(e)
+	routers.Message(e)
 	// Start server
 	go func() {
 		port := "9090"

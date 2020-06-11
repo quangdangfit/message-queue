@@ -6,7 +6,7 @@ mongodb:
   password: ######
 
 amqp:
-  url:	##################
+  url: ##################
   exchange_name: exchange_name
   exchange_type: topic
   queue_name: queue_name
