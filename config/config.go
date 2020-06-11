@@ -19,6 +19,16 @@ type Schema struct {
 		ExchangeType string `mapstructure:"exchange_type"`
 		QueueName    string `mapstructure:"queue_name"`
 	} `mapstructure:"amqp"`
+
+	MongoDB struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		Database string `mapstructure:"database"`
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		Env      string `mapstructure:"env"`
+		Replica  string `mapstructure:"replica"`
+	} `mapstructure:"mongodb"`
 }
 
 var Config Schema

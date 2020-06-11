@@ -2,8 +2,8 @@ mongodb:
   host: localhost:27017
   database: database
   env: native
-  user: ######
-  pass: ######
+  username: ######
+  password: ######
 
 amqp:
   url:	##################
