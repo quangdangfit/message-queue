@@ -12,7 +12,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/streadway/amqp v1.0.0
 	github.com/valyala/fasttemplate v1.1.0 // indirect
-	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
+	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	transport/lib v0.0.0-20200609030708-5cbccf123a48
 )

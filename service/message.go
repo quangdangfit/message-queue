@@ -8,6 +8,7 @@ import (
 	"transport/lib/utils/logger"
 
 	"github.com/labstack/echo"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 func PublishMessage(c echo.Context) (err error) {
