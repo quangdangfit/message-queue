@@ -2,7 +2,7 @@ package dbs
 
 import (
 	"encoding/json"
-	"transport/mq_service/models"
+	"gomq/models"
 
 	"gopkg.in/mgo.v2/bson"
 )

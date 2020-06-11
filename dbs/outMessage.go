@@ -1,7 +1,7 @@
 package dbs
 
 import (
-	"transport/mq_service/models"
+	"gomq/models"
 )
 
 const (
