@@ -15,8 +15,7 @@ import (
 const RequestTimeout = time.Duration(60 * time.Second)
 
 type Receiver interface {
-	HandleMessage(bytesMsg []byte, routingKey string) (*models.InMessage, error)
-	convertMessage(bytesMsg []byte) (*models.InMessage, error)
+	HandleMessage(message *models.InMessage, routingKey string) (*models.InMessage, error)
 	storeMessage(message *models.InMessage) (err error)
 	callAPI(message *models.InMessage) (*http.Response, error)
 }
@@ -28,8 +27,9 @@ func NewReceiver() Receiver {
 	return &r
 }
 
-func (r *receiver) HandleMessage(bytesMsg []byte, routingKey string) (*models.InMessage, error) {
-	message, _ := r.convertMessage(bytesMsg)
+func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
+	*models.InMessage, error) {
+
 	inRoutingKey, err := dbs.GetRoutingKey(routingKey)
 	if err != nil {
 		return nil, err
@@ -38,9 +38,9 @@ func (r *receiver) HandleMessage(bytesMsg []byte, routingKey string) (*models.In
 
 	res, err := r.callAPI(message)
 	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
+		message.Status = dbs.InMessageStatusWaitRetry
+		message.Logs = err.Error()
+	} else if res.StatusCode != http.StatusOK {
 		message.Status = dbs.InMessageStatusWaitRetry
 		message.Logs = utils.ParseError(*res)
 	}
@@ -50,13 +50,10 @@ func (r *receiver) HandleMessage(bytesMsg []byte, routingKey string) (*models.In
 	return message, nil
 }
 
-func (r *receiver) convertMessage(bytesMsg []byte) (*models.InMessage, error) {
-	var message = models.InMessage{}
-	json.Unmarshal(bytesMsg, &message)
-	return &message, nil
-}
-
 func (r *receiver) storeMessage(message *models.InMessage) (err error) {
+	message.CreatedTime = time.Now()
+	message.UpdatedTime = time.Now()
+
 	message, _ = dbs.AddInMessage(message)
 	return nil
 }

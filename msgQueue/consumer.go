@@ -1,6 +1,7 @@
 package msgQueue
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/manucorporat/try"
@@ -21,9 +22,10 @@ const TimeoutRetry = 3
 type Consumer interface {
 	MessageQueue
 	RunConsumer(handler func([]byte) bool)
+	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
 	announceQueue() (<-chan amqp.Delivery, error)
-	handle(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
+	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
 	consume(deliveries <-chan amqp.Delivery)
 }
 
@@ -70,8 +72,26 @@ func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 
 	deliveries, _ := cons.announceQueue()
 	fmt.Sprintf("[%s]Error when calling announceQueue()", "consumerTag")
-	//cons.handle(deliveries, handler, maxParallelism(), queueName, routingKey)
-	cons.handle(deliveries, handler, 3)
+	//cons.startConsuming(deliveries, handler, maxParallelism(), queueName, routingKey)
+	cons.startConsuming(deliveries, handler, 3)
+}
+
+func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
+	*models.InMessage, error) {
+
+	var payload interface{}
+	json.Unmarshal(msg.Body, &payload)
+	message := models.InMessage{
+		Payload:     payload,
+		OriginCode:  msg.Headers["origin_code"].(string),
+		OriginModel: msg.Headers["origin_model"].(string),
+	}
+	return &message, nil
+}
+
+func (cons *consumer) convertMessage(bytesMsg []byte, payload interface{}) error {
+	json.Unmarshal(bytesMsg, &payload)
+	return nil
 }
 
 func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
@@ -115,7 +135,7 @@ func (cons *consumer) announceQueue() (<-chan amqp.Delivery, error) {
 	return deliveries, nil
 }
 
-func (cons *consumer) handle(deliveries <-chan amqp.Delivery,
+func (cons *consumer) startConsuming(deliveries <-chan amqp.Delivery,
 	fn func([]byte) bool, threads int) {
 	var err error
 	for {
@@ -149,8 +169,9 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 		logger.Info("Enter deliver")
 		ret := false
 		try.This(func() {
+			message, _ := cons.parseMessageFromDelivery(msg)
 			receiver := msgHandler.NewReceiver()
-			message, err := receiver.HandleMessage(msg.Body, msg.RoutingKey)
+			_, err := receiver.HandleMessage(message, msg.RoutingKey)
 			if err != nil {
 				logger.Errorf("Failed to handle message, routing_key %s, "+
 					"model %s, code %s", message.RoutingKey,
