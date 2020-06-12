@@ -7,8 +7,9 @@
 * Install require packages: `go mod vendor`
 
 ### Startup
-* Run project : `go run main.go -mod=vendor`
-* Try:
+* Run Publisher: `go run -mod=vendor main.go`
+* Run Consumer: `go run -mod=vendor gomq/cmd/consumer/mqConsumer.go`
+* Publish message:
 ```
 curl --location --request POST 'localhost:9090/api/v1/mq_service/messages' \
 --header 'Content-Type: application/json' \

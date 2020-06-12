@@ -22,7 +22,7 @@ type InMessage struct {
 	OriginCode  string      `json:"origin_code,omitempty" bson:"origin_code,omitempty"`
 	OriginModel string      `json:"origin_model,omitempty" bson:"origin_model,omitempty"`
 	Status      string      `json:"status,omitempty" bson:"status,omitempty"`
-	Logs        string      `json:"logs,omitempty" bson:"logs,omitempty"`
+	Logs        interface{} `json:"logs,omitempty" bson:"logs,omitempty"`
 	Attempts    uint        `json:"attempts,omitempty" bson:"attempts,omitempty"`
 
 	CreatedTime time.Time `json:"created_time" bson:"created_time"`

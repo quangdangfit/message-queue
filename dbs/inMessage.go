@@ -2,8 +2,6 @@ package dbs
 
 import (
 	"gomq/models"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -17,13 +15,8 @@ const (
 	InMessageStatusWaitCanceled = "canceled"
 )
 
-func AddInMessage(message *models.InMessage, strRoutingKey string) (
+func AddInMessage(message *models.InMessage) (
 	*models.InMessage, error) {
-	routingKey := models.RoutingKey{}
-	Database.FindOne(CollectionRoutingKey,
-		bson.M{"name": strRoutingKey}, "", &routingKey)
-
-	message.RoutingKey = routingKey
 
 	err := Database.InsertOne(CollectionInMessage, message)
 	if err != nil {

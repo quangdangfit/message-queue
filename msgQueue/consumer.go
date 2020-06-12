@@ -15,14 +15,17 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const RecoverIntervalTime = 6 * 60
+const TimeoutRetry = 3
+
 type Consumer interface {
 	MessageQueue
 	RunConsumer(handler func([]byte) bool)
+	reconnect(retryTime int) (<-chan amqp.Delivery, error)
+	announceQueue() (<-chan amqp.Delivery, error)
+	handle(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
 	consume(deliveries <-chan amqp.Delivery)
 }
-
-const RECOVER_INTERVAL_TIME = 6 * 60
-const TIMEOUT_RETRY = 3
 
 type consumer struct {
 	messageQueue
@@ -71,9 +74,9 @@ func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 	cons.handle(deliveries, handler, 3)
 }
 
-func (cons *consumer) reConnect(retryTime int) (<-chan amqp.Delivery, error) {
+func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
 	cons.closeConnection()
-	time.Sleep(time.Duration(TIMEOUT_RETRY) * time.Second)
+	time.Sleep(time.Duration(TimeoutRetry) * time.Second)
 	logger.Info("Try reConnect with times:", retryTime)
 
 	if err := cons.newConnection(); err != nil {
@@ -87,8 +90,7 @@ func (cons *consumer) reConnect(retryTime int) (<-chan amqp.Delivery, error) {
 	return deliveries, nil
 }
 
-// announceQueue sets the queue that will be listened to for this
-// connection...
+// announceQueue sets the queue that will be listened to for this connection
 func (cons *consumer) announceQueue() (<-chan amqp.Delivery, error) {
 	err := cons.channel.Qos(50, 0, false)
 	if err != nil {
@@ -128,7 +130,7 @@ func (cons *consumer) handle(deliveries <-chan amqp.Delivery,
 			cons.currentStatus.Store(false)
 			retryTime := 1
 			for {
-				deliveries, err = cons.reConnect(retryTime)
+				deliveries, err = cons.reconnect(retryTime)
 				if err != nil {
 					logger.Error("Reconnecting Error")
 					retryTime += 1
@@ -158,7 +160,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 			if ret == true {
 				msg.Ack(false)
 				currentTime := time.Now().Unix()
-				if currentTime-cons.lastRecoverTime > RECOVER_INTERVAL_TIME &&
+				if currentTime-cons.lastRecoverTime > RecoverIntervalTime &&
 					!cons.currentStatus.Load().(bool) {
 
 					logger.Info("Try to Recover Unack Messages!")
