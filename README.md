@@ -1,12 +1,12 @@
 # Message Queue Service
 ### Golang, Echo, AMQP
 
-### Setup
+#### Setup
 * Create config file: `cp config-sample.yaml config.yaml`
 * Config database and amqp config
 * Install require packages: `go mod vendor`
 
-### Startup
+#### Startup
 * Run Publisher: `go run -mod=vendor main.go`
 * Run Consumer: `go run -mod=vendor gomq/cmd/consumer/mqConsumer.go`
 * Publish message:
@@ -23,11 +23,11 @@ curl --location --request POST 'localhost:9090/api/v1/mq_service/messages' \
 }'
 ```
 
-##### Service structure
+#### Structure
 ![alt text](https://i.imgur.com/QPx5Qs6.jpg "Repository Pattern")
 
 
-##### Structure
+#### Structure
 * `routers/`: define api url, request body, params
 * `services/`: wrapper message before publish
 * `msgQueue/`: contains publisher and consumer to send and receive messages
@@ -36,8 +36,8 @@ curl --location --request POST 'localhost:9090/api/v1/mq_service/messages' \
 * `config/`: define configuration
 
 #### 📙 Libraries
-- Echo https://echo.labstack.com/
+- Echo: https://echo.labstack.com/
 - AMQP Package: https://godoc.org/github.com/streadway/amqp
 
-### Contributing
+#### Contributing
 If you want to contribute to this boilerplate, clone the repository and just start making pull requests.
