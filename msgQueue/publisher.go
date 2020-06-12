@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gomq/config"
+	"gomq/dbs"
 	"gomq/models"
 	"gomq/msgHandler"
 	"transport/lib/utils/logger"
@@ -14,6 +15,7 @@ import (
 type Publisher interface {
 	MessageQueue
 	Publish(message *models.OutMessage, reliable bool) error
+	confirmAndHandle(message *models.OutMessage, confirms chan amqp.Confirmation) error
 }
 
 type publisher struct {
@@ -45,30 +47,40 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 			return err
 		}
 		confirms := pub.channel.NotifyPublish(make(chan amqp.Confirmation, 1))
-		defer pub.confirmOne(message, confirms)
+		defer pub.confirmAndHandle(message, confirms)
 	}
 
-	msgObj, _ := json.Marshal(message)
+	payload, _ := json.Marshal(message.Payload)
+	headers := amqp.Table{
+		"origin_code":  message.OriginCode,
+		"origin_model": message.OriginModel,
+	}
 	if err = pub.channel.Publish(
 		pub.config.ExchangeName, // publish to an exchange
 		message.RoutingKey,
 		false, // mandatory
 		false, // immediate
 		amqp.Publishing{
-			Headers:         amqp.Table{},
+			Headers:         headers,
 			ContentType:     "application/json",
 			ContentEncoding: "",
-			Body:            msgObj,
+			Body:            payload,
 			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
 			Priority:        0,              // 0-9
 			// a bunch of application/implementation-specific fields
 		},
 	); err != nil {
+		message.Status = dbs.OutMessageStatusFailed
 		return fmt.Errorf("Exchange Publish: %s", err)
 	}
 
-	outHandler := msgHandler.NewOutMessageHandler()
-	outHandler.HandleMessage(message)
-
 	return nil
+}
+
+func (pub *publisher) confirmAndHandle(message *models.OutMessage, confirms chan amqp.Confirmation) error {
+	pub.confirmOne(message, confirms)
+
+	outHandler := msgHandler.NewOutMessageHandler()
+	_, err := outHandler.HandleMessage(message)
+	return err
 }

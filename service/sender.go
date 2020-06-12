@@ -29,24 +29,26 @@ func NewSender() Sender {
 func (s *sender) PublishMessage(c echo.Context) (err error) {
 	var req models.MessageRequest
 	if err := c.Bind(&req); err != nil {
-		logger.Error("SCHEDULE: Bad request: ", err.Error())
+		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
 	validate := validator.New()
 	if err = validate.Struct(req); err != nil {
-		logger.Error("SCHEDULE: Bad request: ", err.Error())
+		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
 	message, err := s.parseMessage(req)
 	if err != nil {
-		logger.Error("SCHEDULE: Bad request: ", err.Error())
+		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
 	publisher := msgQueue.NewPublisher()
-	if err = publisher.Publish(message, true); err != nil {
+	err = publisher.Publish(message, true)
+	if err != nil {
+		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
