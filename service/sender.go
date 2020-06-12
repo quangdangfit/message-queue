@@ -20,10 +20,12 @@ type Sender interface {
 }
 
 type sender struct {
+	pub msgQueue.Publisher
 }
 
 func NewSender() Sender {
-	return &sender{}
+	pub := msgQueue.NewPublisher()
+	return &sender{pub: pub}
 }
 
 func (s *sender) PublishMessage(c echo.Context) (err error) {
@@ -45,8 +47,7 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
-	publisher := msgQueue.NewPublisher()
-	err = publisher.Publish(message, true)
+	err = s.pub.Publish(message, true)
 	if err != nil {
 		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})

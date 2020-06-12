@@ -37,7 +37,8 @@ func NewPublisher() Publisher {
 func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	err error) {
 
-	defer pub.closeConnection()
+	channel, _ := pub.newChannel()
+	defer channel.Close()
 
 	// Reliable publisher confirms require confirm.select support from the connection.
 	if reliable {

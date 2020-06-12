@@ -66,7 +66,7 @@ func maxParallelism() int {
 }
 
 func (cons *consumer) RunConsumer(handler func([]byte) bool) {
-	if err := cons.newConnection(); err != nil {
+	if _, err := cons.newConnection(); err != nil {
 		fmt.Sprintf("[%s]connect error", "consumerTag")
 	}
 
@@ -99,7 +99,7 @@ func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
 	time.Sleep(time.Duration(TimeoutRetry) * time.Second)
 	logger.Info("Try reConnect with times:", retryTime)
 
-	if err := cons.newConnection(); err != nil {
+	if _, err := cons.newConnection(); err != nil {
 		return nil, err
 	}
 

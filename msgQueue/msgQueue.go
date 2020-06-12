@@ -10,9 +10,9 @@ import (
 )
 
 type MessageQueue interface {
-	newConnection() error
+	newConnection() (*amqp.Connection, error)
 	closeConnection() error
-	newChannel() error
+	newChannel() (*amqp.Channel, error)
 	closeChannel() error
 	declareExchange() error
 	declareQueue() error
@@ -29,14 +29,14 @@ type messageQueue struct {
 	isClosed   bool
 }
 
-func (mq *messageQueue) newConnection() error {
+func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	mq.connection = conn
 	mq.newChannel()
-	return nil
+	return conn, nil
 }
 
 func (mq *messageQueue) closeConnection() error {
@@ -54,14 +54,14 @@ func (mq *messageQueue) closeConnection() error {
 	return nil
 }
 
-func (mq *messageQueue) newChannel() error {
+func (mq *messageQueue) newChannel() (*amqp.Channel, error) {
 	channel, err := mq.connection.Channel()
 	if err != nil {
 		logger.Error("Failed to new connection: ", err)
-		return err
+		return nil, err
 	}
 	mq.channel = channel
-	return nil
+	return channel, nil
 }
 
 func (mq *messageQueue) closeChannel() error {
