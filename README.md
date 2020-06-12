@@ -7,7 +7,7 @@
 * Install require packages: `go mod vendor`
 
 #### Startup
-* Run Publisher: `go run -mod=vendor main.go`
+* Run Publisher: `go run -mod=vendor gomq/cmd/[publisher]/mqPublisher.go`
 * Run Consumer: `go run -mod=vendor gomq/cmd/consumer/mqConsumer.go`
 * Publish message:
 ```
@@ -23,7 +23,7 @@ curl --location --request POST 'localhost:9090/api/v1/mq_service/messages' \
 }'
 ```
 
-#### Structure
+#### Diagram
 ![alt text](https://i.imgur.com/QPx5Qs6.jpg "Repository Pattern")
 
 
