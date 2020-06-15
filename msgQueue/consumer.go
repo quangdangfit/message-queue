@@ -21,7 +21,7 @@ type Consumer interface {
 	RunConsumer(handler func([]byte) bool)
 	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
-	announceQueue() (<-chan amqp.Delivery, error)
+	subscribe() (<-chan amqp.Delivery, error)
 	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
 	consume(deliveries <-chan amqp.Delivery)
 }
@@ -47,6 +47,8 @@ func NewConsumer() Consumer {
 		QueueName: config.Config.AMQP.QueueName,
 	}
 	sub.newConnection()
+	defer sub.channel.Close()
+
 	sub.declareQueue()
 
 	return &sub
@@ -67,8 +69,8 @@ func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 		fmt.Sprintf("[%s]connect error", "consumerTag")
 	}
 
-	deliveries, _ := cons.announceQueue()
-	fmt.Sprintf("[%s]Error when calling announceQueue()", "consumerTag")
+	deliveries, _ := cons.subscribe()
+	fmt.Sprintf("[%s]Error when calling subscribe()", "consumerTag")
 	//cons.startConsuming(deliveries, handler, maxParallelism(), queueName, routingKey)
 	cons.startConsuming(deliveries, handler, 3)
 }
@@ -100,18 +102,19 @@ func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
 		return nil, err
 	}
 
-	deliveries, err := cons.announceQueue()
+	deliveries, err := cons.subscribe()
 	if err != nil {
 		return deliveries, errors.New("Couldn't connect")
 	}
 	return deliveries, nil
 }
 
-// announceQueue sets the queue that will be listened to for this connection
-func (cons *consumer) announceQueue() (<-chan amqp.Delivery, error) {
+// subscribe sets the queue that will be listened to for this connection
+func (cons *consumer) subscribe() (<-chan amqp.Delivery, error) {
 	err := cons.channel.Qos(50, 0, false)
 	if err != nil {
-		return nil, fmt.Errorf("Error setting qos: %s", err)
+		logger.Error("Error setting qos: ", err)
+		return nil, err
 	}
 
 	logger.Info("Queue bound to Exchange, starting Consume consumer tag:",
@@ -136,7 +139,7 @@ func (cons *consumer) startConsuming(deliveries <-chan amqp.Delivery,
 	fn func([]byte) bool, threads int) {
 	var err error
 	for {
-		logger.Info("Enter for busy loop with thread:", threads)
+		logger.Info("Enter for busy loop with thread: ", threads)
 		for i := 0; i < threads; i++ {
 			go cons.consume(deliveries)
 		}
@@ -161,7 +164,7 @@ func (cons *consumer) startConsuming(deliveries <-chan amqp.Delivery,
 }
 
 func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
-	logger.Info("Enter go with thread with deliveries", deliveries)
+	logger.Info("Enter go with thread with deliveries ", deliveries)
 	for msg := range deliveries {
 		logger.Info("Enter deliver")
 		ret := false

@@ -34,11 +34,15 @@ type messageQueue struct {
 }
 
 func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
+	mq.closeConnection()
+
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
 	if err != nil {
 		return nil, err
 	}
 	mq.connection = conn
+	mq.newChannel()
+
 	return conn, nil
 }
 
@@ -62,7 +66,7 @@ func (mq *messageQueue) closeConnection() error {
 func (mq *messageQueue) newChannel() (*amqp.Channel, error) {
 	channel, err := mq.connection.Channel()
 	if err != nil {
-		logger.Error("Failed to new connection: ", err)
+		logger.Error("Failed to new channel: ", err)
 		return nil, err
 	}
 	mq.channel = channel

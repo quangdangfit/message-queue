@@ -30,10 +30,7 @@ func NewPublisher() Publisher {
 		ExchangeType: config.Config.AMQP.ExchangeType,
 	}
 	pub.newConnection()
-
-	// New channel for declaration and close when done
-	pub.newChannel()
-	defer pub.closeChannel()
+	defer pub.channel.Close()
 
 	pub.declareExchange()
 
