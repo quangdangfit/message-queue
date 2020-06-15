@@ -32,7 +32,10 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 
 	inRoutingKey, err := dbs.GetRoutingKey(routingKey)
 	if err != nil {
-		return nil, err
+		message.Status = dbs.InMessageStatusInvalid
+		message.Logs = err.Error()
+		r.storeMessage(message)
+		return message, err
 	}
 	message.RoutingKey = *inRoutingKey
 
@@ -47,7 +50,7 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 
 	r.storeMessage(message)
 
-	return message, nil
+	return message, err
 }
 
 func (r *receiver) storeMessage(message *models.InMessage) (err error) {
