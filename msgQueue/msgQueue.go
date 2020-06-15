@@ -9,9 +9,13 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const RecoverIntervalTime = 6 * 60
+const TimeoutRetry = 3
+
 type MessageQueue interface {
 	newConnection() (*amqp.Connection, error)
 	closeConnection() error
+	ensureConnection() (err error)
 	newChannel() (*amqp.Channel, error)
 	closeChannel() error
 	declareExchange() error
@@ -35,7 +39,6 @@ func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
 		return nil, err
 	}
 	mq.connection = conn
-	mq.newChannel()
 	return conn, nil
 }
 
@@ -51,6 +54,8 @@ func (mq *messageQueue) closeConnection() error {
 		}
 		mq.connection = nil
 	}
+
+	mq.isClosed = true
 	return nil
 }
 
@@ -64,12 +69,18 @@ func (mq *messageQueue) newChannel() (*amqp.Channel, error) {
 	return channel, nil
 }
 
+func (mq *messageQueue) ensureConnection() (err error) {
+	if mq.isClosed {
+		_, err = mq.newConnection()
+	}
+	return err
+}
+
 func (mq *messageQueue) closeChannel() error {
 	if mq.isClosed {
 		return nil
 	}
 	logger.Info("Close channel")
-	mq.isClosed = true
 	if mq.channel != nil {
 		_ = mq.channel.Close()
 		mq.channel = nil

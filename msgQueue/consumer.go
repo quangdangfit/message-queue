@@ -16,9 +16,6 @@ import (
 	"github.com/streadway/amqp"
 )
 
-const RecoverIntervalTime = 6 * 60
-const TimeoutRetry = 3
-
 type Consumer interface {
 	MessageQueue
 	RunConsumer(handler func([]byte) bool)

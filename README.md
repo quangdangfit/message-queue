@@ -24,7 +24,7 @@ curl --location --request POST 'localhost:8080/api/v1/mq_service/messages' \
 ```
 
 #### Diagram
-![alt text](https://i.imgur.com/QPx5Qs6.jpg "Repository Pattern")
+![alt text](https://imgur.com/NXuvQLG.jpg "Repository Pattern")
 
 
 #### Structure

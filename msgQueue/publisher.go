@@ -2,7 +2,6 @@ package msgQueue
 
 import (
 	"encoding/json"
-	"fmt"
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/models"
@@ -31,23 +30,31 @@ func NewPublisher() Publisher {
 		ExchangeType: config.Config.AMQP.ExchangeType,
 	}
 	pub.newConnection()
+
+	// New channel for declaration and close when done
+	pub.newChannel()
+	defer pub.closeChannel()
+
+	pub.declareExchange()
+
 	return &pub
 }
 
 func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	err error) {
 
-	channel, _ := pub.newChannel()
+	// New channel and close after publish
+	pub.ensureConnection()
+	channel, _ := pub.connection.Channel()
 	defer channel.Close()
 
 	// Reliable publisher confirms require confirm.select support from the connection.
 	if reliable {
-		if err := pub.channel.Confirm(false); err != nil {
-			logger.Errorf(
-				"Channel could not be put into confirm mode: %s", err)
+		if err := channel.Confirm(false); err != nil {
+			logger.Errorf("Channel could not be put into confirm mode: %s", err)
 			return err
 		}
-		confirms := pub.channel.NotifyPublish(make(chan amqp.Confirmation, 1))
+		confirms := channel.NotifyPublish(make(chan amqp.Confirmation, 1))
 		defer pub.confirmAndHandle(message, confirms)
 	}
 
@@ -56,7 +63,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 		"origin_code":  message.OriginCode,
 		"origin_model": message.OriginModel,
 	}
-	if err = pub.channel.Publish(
+	if err = channel.Publish(
 		pub.config.ExchangeName, // publish to an exchange
 		message.RoutingKey,
 		false, // mandatory
@@ -72,7 +79,8 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 		},
 	); err != nil {
 		message.Status = dbs.OutMessageStatusFailed
-		return fmt.Errorf("Exchange Publish: %s", err)
+		logger.Error("Failed to publish message ", err)
+		return err
 	}
 
 	return nil
