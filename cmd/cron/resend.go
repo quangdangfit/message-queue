@@ -3,7 +3,7 @@ package main
 import (
 	"gomq/dbs"
 	"gomq/msgQueue"
-	"lib/utils/logger"
+	"transport/lib/utils/logger"
 )
 
 const ResendOutMessageLimit = 100

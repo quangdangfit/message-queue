@@ -1,6 +1,7 @@
 package dbs
 
 import (
+	"github.com/google/uuid"
 	"gomq/models"
 	"gopkg.in/mgo.v2/bson"
 	"time"
@@ -29,6 +30,10 @@ func GetWaitOutMessage(limit int) ([]models.OutMessage, error) {
 }
 
 func AddOutMessage(message *models.OutMessage) (*models.OutMessage, error) {
+	message.CreatedTime = time.Now()
+	message.UpdatedTime = time.Now()
+	message.ID = uuid.New().String()
+
 	err := Database.InsertOne(CollectionOutMessage, message)
 	if err != nil {
 		return nil, err
@@ -37,14 +42,7 @@ func AddOutMessage(message *models.OutMessage) (*models.OutMessage, error) {
 }
 
 func UpdateOutMessage(message *models.OutMessage) error {
-	//TODO: create field id (uuid) and query by id
-	selector := bson.M{
-		"routing_key":  message.RoutingKey,
-		"origin_model": message.OriginModel,
-		"routing_code": message.OriginCode,
-		"create_time":  message.CreatedTime,
-	}
-
+	selector := bson.M{"id": message.ID}
 	payload := map[string]interface{}{
 		"updated_time": time.Now(),
 		"status":       message.Status,

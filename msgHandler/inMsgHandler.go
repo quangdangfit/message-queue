@@ -54,9 +54,6 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 }
 
 func (r *receiver) storeMessage(message *models.InMessage) (err error) {
-	message.CreatedTime = time.Now()
-	message.UpdatedTime = time.Now()
-
 	message, _ = dbs.AddInMessage(message)
 	return nil
 }
