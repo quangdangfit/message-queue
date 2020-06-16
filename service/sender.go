@@ -6,8 +6,6 @@ import (
 	"gomq/models"
 	"gomq/msgQueue"
 	"net/http"
-	"time"
-
 	"transport/lib/utils/logger"
 
 	"github.com/labstack/echo"
@@ -64,9 +62,6 @@ func (s *sender) parseMessage(msgRequest models.MessageRequest) (
 	if err != nil {
 		return &message, err
 	}
-
-	message.CreatedTime = time.Now()
-	message.UpdatedTime = time.Now()
 	message.Status = dbs.OutMessageStatusWait
 
 	return &message, nil

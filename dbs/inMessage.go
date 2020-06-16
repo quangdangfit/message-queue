@@ -1,7 +1,9 @@
 package dbs
 
 import (
+	"github.com/google/uuid"
 	"gomq/models"
+	"time"
 )
 
 const (
@@ -15,8 +17,10 @@ const (
 	InMessageStatusWaitCanceled = "canceled"
 )
 
-func AddInMessage(message *models.InMessage) (
-	*models.InMessage, error) {
+func AddInMessage(message *models.InMessage) (*models.InMessage, error) {
+	message.CreatedTime = time.Now()
+	message.UpdatedTime = time.Now()
+	message.ID = uuid.New().String()
 
 	err := Database.InsertOne(CollectionInMessage, message)
 	if err != nil {

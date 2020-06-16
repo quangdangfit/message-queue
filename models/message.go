@@ -5,6 +5,7 @@ import (
 )
 
 type OutMessage struct {
+	ID          string      `json:"id,omitempty" bson:"id,omitempty"`
 	RoutingKey  string      `json:"routing_key,omitempty" bson:"routing_key,omitempty"`
 	Payload     interface{} `json:"payload,omitempty" bson:"payload,omitempty"`
 	OriginCode  string      `json:"origin_code,omitempty" bson:"origin_code,omitempty"`
@@ -17,6 +18,7 @@ type OutMessage struct {
 }
 
 type InMessage struct {
+	ID          string      `json:"id,omitempty" bson:"id,omitempty"`
 	RoutingKey  RoutingKey  `json:"routing_key,omitempty" bson:"routing_key,omitempty"`
 	Payload     interface{} `json:"payload,omitempty" bson:"payload,omitempty"`
 	OriginCode  string      `json:"origin_code,omitempty" bson:"origin_code,omitempty"`
