@@ -33,7 +33,18 @@ func init() {
 
 func ensureIndex() {
 	// Index for OutMessages
-	index1 := mgo.Index{
+	indexOutId := mgo.Index{
+		Key:        []string{"id"},
+		Unique:     true,
+		DropDups:   false,
+		Background: true,
+		Sparse:     true,
+		Name:       "out_message_id_index",
+	}
+	Database.DropIndex(CollectionOutMessage, indexOutId.Name)
+	Database.EnsureIndex(CollectionOutMessage, indexOutId)
+
+	indexOutObj := mgo.Index{
 		Key:        []string{"origin_id, origin_model"},
 		Unique:     false,
 		DropDups:   false,
@@ -41,11 +52,22 @@ func ensureIndex() {
 		Sparse:     true,
 		Name:       "origin_object_index",
 	}
-	Database.DropIndex(CollectionOutMessage, index1.Name)
-	Database.EnsureIndex(CollectionOutMessage, index1)
+	Database.DropIndex(CollectionOutMessage, indexOutObj.Name)
+	Database.EnsureIndex(CollectionOutMessage, indexOutObj)
 
 	// Index for InMessages
-	index2 := mgo.Index{
+	indexInId := mgo.Index{
+		Key:        []string{"id"},
+		Unique:     true,
+		DropDups:   false,
+		Background: true,
+		Sparse:     true,
+		Name:       "in_message_id_index",
+	}
+	Database.DropIndex(CollectionInMessage, indexInId.Name)
+	Database.EnsureIndex(CollectionInMessage, indexInId)
+
+	indexInObj := mgo.Index{
 		Key:        []string{"origin_id, origin_model"},
 		Unique:     false,
 		DropDups:   false,
@@ -53,6 +75,6 @@ func ensureIndex() {
 		Sparse:     true,
 		Name:       "origin_object_index",
 	}
-	Database.DropIndex(CollectionInMessage, index2.Name)
-	Database.EnsureIndex(CollectionInMessage, index2)
+	Database.DropIndex(CollectionInMessage, indexInObj.Name)
+	Database.EnsureIndex(CollectionInMessage, indexInObj)
 }
