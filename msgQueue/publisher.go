@@ -19,9 +19,10 @@ type Publisher interface {
 
 type publisher struct {
 	messageQueue
+	store bool
 }
 
-func NewPublisher() Publisher {
+func NewPublisher(store bool) Publisher {
 	var pub publisher
 
 	pub.config = &models.AMQPConfig{
@@ -29,6 +30,7 @@ func NewPublisher() Publisher {
 		ExchangeName: config.Config.AMQP.ExchangeName,
 		ExchangeType: config.Config.AMQP.ExchangeType,
 	}
+	pub.store = store
 	pub.newConnection()
 	defer pub.channel.Close()
 
@@ -87,6 +89,6 @@ func (pub *publisher) confirmAndHandle(message *models.OutMessage, confirms chan
 	pub.confirmOne(message, confirms)
 
 	outHandler := msgHandler.NewOutMessageHandler()
-	_, err := outHandler.HandleMessage(message)
+	_, err := outHandler.HandleMessage(message, pub.store)
 	return err
 }
