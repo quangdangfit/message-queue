@@ -1,0 +1,25 @@
+---
+# cronjob resend out messages
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: message-queue-resend-out-messages                                             # name of cronjob
+spec:
+  schedule: "0 0/3 * * *"             # scheduled time At minute 0 past every 3rd hour from 0 through 23
+  startingDeadlineSeconds: 300                                   # (*)
+  concurrencyPolicy: Replace                               # concurrency control
+  successfulJobsHistoryLimit: 1                                     # history: successful jobs
+  failedJobsHistoryLimit: 1                                     # history: failed jobs
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: mqservice                                      # name of container
+              image: centos:7
+              command:
+                - "bin/bash"
+                - "-c"
+                - "go run cmd/cron/resend.go"
+---
