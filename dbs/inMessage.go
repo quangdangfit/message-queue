@@ -17,6 +17,7 @@ const (
 	InMessageStatusWaitCanceled = "canceled"
 )
 
+//TODO move to repositories package
 func AddInMessage(message *models.InMessage) (*models.InMessage, error) {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
