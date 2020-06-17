@@ -14,7 +14,7 @@ import (
 
 const RequestTimeout = time.Duration(60 * time.Second)
 
-type Receiver interface {
+type InMessageHandler interface {
 	HandleMessage(message *models.InMessage, routingKey string) (*models.InMessage, error)
 	storeMessage(message *models.InMessage) (err error)
 	callAPI(message *models.InMessage) (*http.Response, error)
@@ -22,7 +22,7 @@ type Receiver interface {
 
 type receiver struct{}
 
-func NewReceiver() Receiver {
+func NewInMessageHandler() InMessageHandler {
 	r := receiver{}
 	return &r
 }

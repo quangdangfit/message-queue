@@ -170,7 +170,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 		ret := false
 		try.This(func() {
 			message, _ := cons.parseMessageFromDelivery(msg)
-			receiver := msgHandler.NewReceiver()
+			receiver := msgHandler.NewInMessageHandler()
 			_, err := receiver.HandleMessage(message, msg.RoutingKey)
 			if err != nil {
 				logger.Errorf("Failed to handle message, routing_key %s, "+
