@@ -7,10 +7,10 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	"transport/lib/utils/logger"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 func main() {

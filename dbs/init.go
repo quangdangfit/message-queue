@@ -2,12 +2,13 @@ package dbs
 
 import (
 	"gomq/config"
-	db "transport/lib/database"
 
+	db "gitlab.com/quangdangfit/gocommon/database"
+	"gitlab.com/quangdangfit/gocommon/database/mongo"
 	"gopkg.in/mgo.v2"
 )
 
-var Database db.MongoDB
+var Database mongo.MongoDB
 
 const (
 	CollectionInMessage  = "in_message"
@@ -17,7 +18,7 @@ const (
 
 func init() {
 	dbConfig := db.DBConfig{
-		MongoDBHosts: config.Config.MongoDB.Host,
+		Hosts:        config.Config.MongoDB.Host,
 		AuthDatabase: "admin",
 		AuthUserName: config.Config.MongoDB.Username,
 		AuthPassword: config.Config.MongoDB.Password,
@@ -26,7 +27,7 @@ func init() {
 		Replica:      config.Config.MongoDB.Replica,
 	}
 
-	Database = db.NewConnection(dbConfig)
+	Database = mongo.New(dbConfig)
 
 	ensureIndex()
 }

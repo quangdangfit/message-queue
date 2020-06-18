@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"sync/atomic"
 	"time"
-	"transport/lib/utils/logger"
 
 	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 type Consumer interface {
@@ -47,7 +47,7 @@ func NewConsumer() Consumer {
 		QueueName: config.Config.AMQP.QueueName,
 	}
 	sub.newConnection()
-	defer sub.channel.Close()
+	defer sub.closeConnection()
 
 	sub.declareQueue()
 

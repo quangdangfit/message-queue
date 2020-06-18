@@ -9,7 +9,8 @@ import (
 	"gomq/utils"
 	"net/http"
 	"time"
-	"transport/lib/utils/logger"
+
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 const RequestTimeout = time.Duration(60 * time.Second)

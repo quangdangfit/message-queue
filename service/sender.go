@@ -6,9 +6,9 @@ import (
 	"gomq/models"
 	"gomq/msgQueue"
 	"net/http"
-	"transport/lib/utils/logger"
 
 	"github.com/labstack/echo"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gopkg.in/go-playground/validator.v9"
 )
 
