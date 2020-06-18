@@ -5,6 +5,7 @@ import (
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/models"
+	"gomq/msgHandler"
 
 	"github.com/streadway/amqp"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
@@ -87,7 +88,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 func (pub *publisher) confirmAndHandle(message *models.OutMessage, confirms chan amqp.Confirmation) error {
 	pub.confirmOne(message, confirms)
 
-	//outHandler := msgHandler.NewOutMessageHandler()
-	//_, err := outHandler.HandleMessage(message, pub.store)
-	return nil
+	outHandler := msgHandler.NewOutMessageHandler()
+	_, err := outHandler.HandleMessage(message, pub.store)
+	return err
 }
