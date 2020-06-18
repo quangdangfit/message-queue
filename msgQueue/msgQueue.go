@@ -4,9 +4,9 @@ import (
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/models"
-	"transport/lib/utils/logger"
 
 	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 const RecoverIntervalTime = 6 * 60
@@ -34,8 +34,6 @@ type messageQueue struct {
 }
 
 func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
-	mq.closeConnection()
-
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
 	if err != nil {
 		return nil, err
@@ -74,7 +72,7 @@ func (mq *messageQueue) newChannel() (*amqp.Channel, error) {
 }
 
 func (mq *messageQueue) ensureConnection() (err error) {
-	if mq.isClosed {
+	if mq.connection.IsClosed() {
 		_, err = mq.newConnection()
 	}
 	return err

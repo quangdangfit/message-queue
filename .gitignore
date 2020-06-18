@@ -90,3 +90,4 @@ fabric.properties
 .history
 
 config/config.yaml
+vendor/

@@ -6,9 +6,9 @@ import (
 	"gomq/dbs"
 	"gomq/models"
 	"gomq/msgHandler"
-	"transport/lib/utils/logger"
 
 	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 type Publisher interface {

@@ -3,7 +3,8 @@ package main
 import (
 	"gomq/dbs"
 	"gomq/msgQueue"
-	"transport/lib/utils/logger"
+
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 const ResendOutMessageLimit = 100
