@@ -32,10 +32,15 @@ func NewPublisher(store bool) Publisher {
 		QueueName:    config.Config.AMQP.QueueName,
 	}
 	pub.store = store
-	pub.newConnection()
-	defer pub.channel.Close()
+	_, err := pub.newConnection()
+	if err != nil {
+		logger.Error("Publisher create new connection failed!")
+	}
 
-	pub.setup()
+	err = pub.declareExchange()
+	if err != nil {
+		logger.Error("Publisher declare exchange failed!")
+	}
 
 	return &pub
 }

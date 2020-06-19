@@ -51,10 +51,15 @@ func NewConsumer() Consumer {
 		ExchangeName: config.Config.AMQP.ExchangeName,
 		ExchangeType: config.Config.AMQP.ExchangeType,
 	}
-	sub.newConnection()
-	defer sub.channel.Close()
+	_, err := sub.newConnection()
+	if err != nil {
+		logger.Error("Consumer create new connection failed!")
+	}
 
-	sub.setup()
+	err = sub.declareQueue()
+	if err != nil {
+		logger.Error("Consumer declare queue failed!")
+	}
 
 	return &sub
 }
@@ -70,10 +75,7 @@ func maxParallelism() int {
 }
 
 func (cons *consumer) RunConsumer(handler func([]byte) bool) {
-	if _, err := cons.newConnection(); err != nil {
-		logger.Error("Cannot connect new connection: ", err)
-	}
-
+	cons.newChannel()
 	deliveries, _ := cons.subscribe()
 
 	threads := config.Config.AMQP.ConsumerThreads
@@ -106,9 +108,7 @@ func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
 	time.Sleep(time.Duration(TimeoutRetry) * time.Second)
 	logger.Info("Try reConnect with times:", retryTime)
 
-	if _, err := cons.newConnection(); err != nil {
-		return nil, err
-	}
+	cons.ensureConnection()
 
 	deliveries, err := cons.subscribe()
 	if err != nil {
@@ -148,7 +148,7 @@ func (cons *consumer) startConsuming(deliveries <-chan amqp.Delivery,
 	fn func([]byte) bool, threads int) {
 	var err error
 	for {
-		logger.Info("Enter for busy loop with thread: ", threads)
+		logger.Info("Enter for busy loop with threads: ", threads)
 		for i := 0; i < threads; i++ {
 			go cons.consume(deliveries)
 		}
@@ -207,7 +207,6 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 				//add [retry-ttl] in header.
 				//msg.Nack(false, true)
 				msg.Reject(false)
-				logger.Info("Quang dep trai")
 				//cons.currentStatus.Store(true)
 			}
 		}).Catch(func(e try.E) {
