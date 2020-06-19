@@ -3,6 +3,7 @@ package msgHandler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gomq/dbs"
 	"gomq/models"
@@ -48,6 +49,7 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	} else if res.StatusCode != http.StatusOK {
 		message.Status = dbs.InMessageStatusWaitRetry
 		message.Logs = utils.ParseError(*res)
+		err = errors.New("failed to call API")
 	}
 
 	r.storeMessage(message)
@@ -68,6 +70,7 @@ func (r *receiver) callAPI(message *models.InMessage) (*http.Response, error) {
 		routingKey.APIMethod, routingKey.APIUrl, bytes.NewBuffer(bytesPayload))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", "ahsfishdi"))
+	req.Header.Set("x-api-key", message.ApiKey)
 
 	client := http.Client{
 		Timeout: RequestTimeout,
