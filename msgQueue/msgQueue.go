@@ -23,6 +23,8 @@ type MessageQueue interface {
 	bindQueue(routingKey string) error
 	confirmOne(message *models.OutMessage,
 		confirms <-chan amqp.Confirmation) bool
+	setup()
+	ChanelIsClosed() bool
 }
 
 type messageQueue struct {
@@ -95,7 +97,7 @@ func (mq *messageQueue) closeChannel() error {
 }
 
 func (mq *messageQueue) declareExchange() error {
-	if mq.channelIsClosed {
+	if mq.ChanelIsClosed() {
 		logger.Error("Channel is closed, cannot declare exchange")
 	}
 
@@ -111,10 +113,16 @@ func (mq *messageQueue) declareExchange() error {
 		logger.Error("Failed to declare exchange: ", err)
 		return err
 	}
+
+	logger.Info("Declared exchange: ", mq.config.ExchangeName)
 	return nil
 }
 
 func (mq *messageQueue) declareQueue() error {
+	if mq.ChanelIsClosed() {
+		logger.Error("Channel is closed, cannot declare exchange")
+	}
+
 	if _, err := mq.channel.QueueDeclare(
 		mq.config.QueueName,
 		false,
@@ -126,6 +134,8 @@ func (mq *messageQueue) declareQueue() error {
 		logger.Error("Failed to declare queue: ", err)
 		return err
 	}
+
+	logger.Info("Declared queue: ", mq.config.QueueName)
 	return nil
 }
 
@@ -159,5 +169,17 @@ func (mq *messageQueue) confirmOne(message *models.OutMessage,
 		confirmed.DeliveryTag)
 
 	message.Status = dbs.OutMessageStatusSentWait
+	return false
+}
+
+func (mq *messageQueue) setup() {
+	mq.declareExchange()
+	mq.declareQueue()
+}
+
+func (mq *messageQueue) ChanelIsClosed() bool {
+	if mq.channel == nil || mq.channelIsClosed {
+		return true
+	}
 	return false
 }

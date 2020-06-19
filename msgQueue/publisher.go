@@ -29,12 +29,13 @@ func NewPublisher(store bool) Publisher {
 		AMQPUrl:      config.Config.AMQP.URL,
 		ExchangeName: config.Config.AMQP.ExchangeName,
 		ExchangeType: config.Config.AMQP.ExchangeType,
+		QueueName:    config.Config.AMQP.QueueName,
 	}
 	pub.store = store
 	pub.newConnection()
 	defer pub.channel.Close()
 
-	pub.declareExchange()
+	pub.setup()
 
 	return &pub
 }
