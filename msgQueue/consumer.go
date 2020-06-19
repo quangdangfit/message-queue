@@ -46,13 +46,15 @@ func NewConsumer() Consumer {
 	}
 
 	sub.config = &models.AMQPConfig{
-		AMQPUrl:   config.Config.AMQP.URL,
-		QueueName: config.Config.AMQP.QueueName,
+		AMQPUrl:      config.Config.AMQP.URL,
+		QueueName:    config.Config.AMQP.QueueName,
+		ExchangeName: config.Config.AMQP.ExchangeName,
+		ExchangeType: config.Config.AMQP.ExchangeType,
 	}
 	sub.newConnection()
-	defer sub.closeConnection()
+	defer sub.channel.Close()
 
-	sub.declareQueue()
+	sub.setup()
 
 	return &sub
 }
@@ -69,7 +71,7 @@ func maxParallelism() int {
 
 func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 	if _, err := cons.newConnection(); err != nil {
-		logger.Error("Cannot connect new connection", err)
+		logger.Error("Cannot connect new connection: ", err)
 	}
 
 	deliveries, _ := cons.subscribe()
