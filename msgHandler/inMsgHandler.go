@@ -36,6 +36,7 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 		message.Status = dbs.InMessageStatusInvalid
 		message.Logs = err.Error()
 		r.storeMessage(message)
+		logger.Error("Cannot find routing key", err)
 		return message, err
 	}
 	message.RoutingKey = *inRoutingKey

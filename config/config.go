@@ -9,15 +9,16 @@ import (
 
 type Schema struct {
 	AMQP struct {
-		URL          string `mapstructure:"url"`
-		Host         string `mapstructure:"host"`
-		Port         string `mapstructure:"port"`
-		Vhost        string `mapstructure:"vhost"`
-		Username     string `mapstructure:"username"`
-		Password     string `mapstructure:"password"`
-		ExchangeName string `mapstructure:"exchange_name"`
-		ExchangeType string `mapstructure:"exchange_type"`
-		QueueName    string `mapstructure:"queue_name"`
+		URL             string `mapstructure:"url"`
+		Host            string `mapstructure:"host"`
+		Port            string `mapstructure:"port"`
+		Vhost           string `mapstructure:"vhost"`
+		Username        string `mapstructure:"username"`
+		Password        string `mapstructure:"password"`
+		ExchangeName    string `mapstructure:"exchange_name"`
+		ExchangeType    string `mapstructure:"exchange_type"`
+		QueueName       string `mapstructure:"queue_name"`
+		ConsumerThreads int    `mapstructure:"consumer_threads"`
 	} `mapstructure:"amqp"`
 
 	MongoDB struct {

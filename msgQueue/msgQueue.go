@@ -26,16 +26,18 @@ type MessageQueue interface {
 }
 
 type messageQueue struct {
-	config     *models.AMQPConfig
-	connection *amqp.Connection
-	channel    *amqp.Channel
-	errorChan  chan *amqp.Error
-	isClosed   bool
+	config          *models.AMQPConfig
+	connection      *amqp.Connection
+	channel         *amqp.Channel
+	errorChan       chan *amqp.Error
+	isClosed        bool
+	channelIsClosed bool
 }
 
 func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
 	if err != nil {
+		logger.Error("Cannot create new connection to AMQP: ", err)
 		return nil, err
 	}
 	mq.connection = conn
@@ -79,19 +81,24 @@ func (mq *messageQueue) ensureConnection() (err error) {
 }
 
 func (mq *messageQueue) closeChannel() error {
-	if mq.isClosed {
+	if mq.isClosed || mq.channelIsClosed {
 		return nil
 	}
 	logger.Info("Close channel")
 	if mq.channel != nil {
 		_ = mq.channel.Close()
 		mq.channel = nil
+		mq.channelIsClosed = true
 	}
 
 	return nil
 }
 
 func (mq *messageQueue) declareExchange() error {
+	if mq.channelIsClosed {
+		logger.Error("Channel is closed, cannot declare exchange")
+	}
+
 	if err := mq.channel.ExchangeDeclare(
 		mq.config.ExchangeName, // name
 		mq.config.ExchangeType, // type

@@ -3,7 +3,6 @@ package msgQueue
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/manucorporat/try"
 	"gomq/config"
 	"gomq/models"
@@ -14,6 +13,10 @@ import (
 
 	"github.com/streadway/amqp"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+)
+
+const (
+	ConsumerThreads = 10
 )
 
 type Consumer interface {
@@ -66,13 +69,16 @@ func maxParallelism() int {
 
 func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 	if _, err := cons.newConnection(); err != nil {
-		fmt.Sprintf("[%s]connect error", "consumerTag")
+		logger.Error("Cannot connect new connection", err)
 	}
 
 	deliveries, _ := cons.subscribe()
-	fmt.Sprintf("[%s]Error when calling subscribe()", "consumerTag")
-	//cons.startConsuming(deliveries, handler, maxParallelism(), queueName, routingKey)
-	cons.startConsuming(deliveries, handler, 3)
+
+	threads := config.Config.AMQP.ConsumerThreads
+	if threads <= 0 {
+		threads = ConsumerThreads
+	}
+	cons.startConsuming(deliveries, handler, threads)
 }
 
 func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
@@ -130,7 +136,8 @@ func (cons *consumer) subscribe() (<-chan amqp.Delivery, error) {
 		nil,                   // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Consume: %s", err)
+		logger.Error("Failed to consume queue: ", err)
+		return nil, err
 	}
 	return deliveries, nil
 }
@@ -169,14 +176,16 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 		logger.Info("Enter deliver")
 		ret := false
 		try.This(func() {
-			message, _ := cons.parseMessageFromDelivery(msg)
-			receiver := msgHandler.NewInMessageHandler()
-			_, err := receiver.HandleMessage(message, msg.RoutingKey)
-			if err != nil {
-				logger.Errorf("Failed to handle message, routing_key %s, "+
-					"model %s, code %s", message.RoutingKey,
-					message.OriginModel, message.OriginCode)
-			}
+			go func() {
+				message, _ := cons.parseMessageFromDelivery(msg)
+				receiver := msgHandler.NewInMessageHandler()
+				_, err := receiver.HandleMessage(message, msg.RoutingKey)
+				if err != nil {
+					logger.Errorf("Failed to handle message, routing_key %s, "+
+						"model %s, code %s", message.RoutingKey,
+						message.OriginModel, message.OriginCode)
+				}
+			}()
 		}).Finally(func() {
 			if ret == true {
 				msg.Ack(false)
@@ -196,6 +205,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 				//add [retry-ttl] in header.
 				//msg.Nack(false, true)
 				msg.Reject(false)
+				logger.Info("Quang dep trai")
 				//cons.currentStatus.Store(true)
 			}
 		}).Catch(func(e try.E) {
