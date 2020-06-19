@@ -27,6 +27,7 @@ type Consumer interface {
 	subscribe() (<-chan amqp.Delivery, error)
 	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
 	consume(deliveries <-chan amqp.Delivery)
+	handle(msg amqp.Delivery)
 }
 
 type consumer struct {
@@ -178,16 +179,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 		logger.Info("Enter deliver")
 		ret := false
 		try.This(func() {
-			go func() {
-				message, _ := cons.parseMessageFromDelivery(msg)
-				receiver := msgHandler.NewInMessageHandler()
-				_, err := receiver.HandleMessage(message, msg.RoutingKey)
-				if err != nil {
-					logger.Errorf("Failed to handle message, routing_key %s, "+
-						"model %s, code %s", message.RoutingKey,
-						message.OriginModel, message.OriginCode)
-				}
-			}()
+			go cons.handle(msg)
 		}).Finally(func() {
 			if ret == true {
 				msg.Ack(false)
@@ -212,5 +204,16 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 		}).Catch(func(e try.E) {
 			logger.Error(e)
 		})
+	}
+}
+
+func (cons *consumer) handle(msg amqp.Delivery) {
+	message, _ := cons.parseMessageFromDelivery(msg)
+	receiver := msgHandler.NewInMessageHandler()
+	_, err := receiver.HandleMessage(message, msg.RoutingKey)
+	if err != nil {
+		logger.Errorf("Failed to handle message, routing_key %s, "+
+			"model %s, code %s", message.RoutingKey,
+			message.OriginModel, message.OriginCode)
 	}
 }
