@@ -67,6 +67,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	headers := amqp.Table{
 		"origin_code":  message.OriginCode,
 		"origin_model": message.OriginModel,
+		"api_key":      message.ApiKey,
 	}
 	if err = channel.Publish(
 		pub.config.ExchangeName, // publish to an exchange

@@ -12,6 +12,7 @@ type OutMessage struct {
 	OriginModel string      `json:"origin_model,omitempty" bson:"origin_model,omitempty"`
 	Status      string      `json:"status,omitempty" bson:"status,omitempty"`
 	Logs        string      `json:"logs,omitempty" bson:"logs,omitempty"`
+	ApiKey      string      `json:"api_key,omitempty" bson:"api_key,omitempty"`
 
 	CreatedTime time.Time `json:"created_time" bson:"created_time"`
 	UpdatedTime time.Time `json:"updated_time" bson:"updated_time"`
@@ -26,6 +27,7 @@ type InMessage struct {
 	Status      string      `json:"status,omitempty" bson:"status,omitempty"`
 	Logs        interface{} `json:"logs,omitempty" bson:"logs,omitempty"`
 	Attempts    uint        `json:"attempts" bson:"attempts"`
+	ApiKey      string      `json:"api_key,omitempty" bson:"api_key,omitempty"`
 
 	CreatedTime time.Time `json:"created_time" bson:"created_time"`
 	UpdatedTime time.Time `json:"updated_time" bson:"updated_time"`

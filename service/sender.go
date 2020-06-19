@@ -14,7 +14,9 @@ import (
 
 type Sender interface {
 	PublishMessage(c echo.Context) (err error)
-	parseMessage(msgRequest models.MessageRequest) (*models.OutMessage, error)
+	parseMessage(c echo.Context, msgRequest models.MessageRequest) (
+		*models.OutMessage, error)
+	getApiKey(c echo.Context) string
 }
 
 type sender struct {
@@ -39,7 +41,7 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
-	message, err := s.parseMessage(req)
+	message, err := s.parseMessage(c, req)
 	if err != nil {
 		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})
@@ -54,7 +56,7 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func (s *sender) parseMessage(msgRequest models.MessageRequest) (
+func (s *sender) parseMessage(c echo.Context, msgRequest models.MessageRequest) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &msgRequest)
@@ -63,6 +65,11 @@ func (s *sender) parseMessage(msgRequest models.MessageRequest) (
 		return &message, err
 	}
 	message.Status = dbs.OutMessageStatusWait
+	message.ApiKey = s.getApiKey(c)
 
 	return &message, nil
+}
+
+func (s *sender) getApiKey(c echo.Context) string {
+	return c.Request().Header.Get("X-Api-Key")
 }
