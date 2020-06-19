@@ -1,6 +1,7 @@
 package msgQueue
 
 import (
+	"fmt"
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/models"
@@ -43,7 +44,6 @@ func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
 		return nil, err
 	}
 	mq.connection = conn
-	mq.newChannel()
 
 	return conn, nil
 }
@@ -66,20 +66,32 @@ func (mq *messageQueue) closeConnection() error {
 }
 
 func (mq *messageQueue) newChannel() (*amqp.Channel, error) {
+	mq.ensureConnection()
+
+	if mq.connection == nil || mq.connection.IsClosed() {
+		logger.Error("Connection is not open, cannot create new channel")
+		return nil, fmt.Errorf("Connection is not open")
+	}
+
 	channel, err := mq.connection.Channel()
 	if err != nil {
 		logger.Error("Failed to new channel: ", err)
 		return nil, err
 	}
 	mq.channel = channel
+	mq.channelIsClosed = false
+	logger.Info("New channel successfully")
 	return channel, nil
 }
 
 func (mq *messageQueue) ensureConnection() (err error) {
-	if mq.connection.IsClosed() {
+	if mq.connection == nil || mq.connection.IsClosed() {
 		_, err = mq.newConnection()
+		if err != nil {
+			return err
+		}
 	}
-	return err
+	return nil
 }
 
 func (mq *messageQueue) closeChannel() error {
@@ -97,8 +109,11 @@ func (mq *messageQueue) closeChannel() error {
 }
 
 func (mq *messageQueue) declareExchange() error {
+	mq.newChannel()
+	defer mq.closeChannel()
+
 	if mq.ChanelIsClosed() {
-		logger.Error("Channel is closed, cannot declare exchange")
+		logger.Error("Channel is not open, cannot declare exchange")
 	}
 
 	if err := mq.channel.ExchangeDeclare(
@@ -119,15 +134,18 @@ func (mq *messageQueue) declareExchange() error {
 }
 
 func (mq *messageQueue) declareQueue() error {
+	mq.newChannel()
+	defer mq.closeChannel()
+
 	if mq.ChanelIsClosed() {
-		logger.Error("Channel is closed, cannot declare exchange")
+		logger.Error("Channel is not open, cannot declare exchange")
 	}
 
 	if _, err := mq.channel.QueueDeclare(
 		mq.config.QueueName,
-		false,
-		false,
 		true,
+		false,
+		false,
 		false,
 		nil,
 	); err != nil {
