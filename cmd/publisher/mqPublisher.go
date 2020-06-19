@@ -21,7 +21,7 @@ func main() {
 	}))
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${time_rfc3339_nano}\t${method}\t${uri}\t${status}\n",
+		Format: "${time_rfc3339_nano}\t${method}\t${latency_human}\t${uri}\t${status}\n",
 	}))
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestID())
