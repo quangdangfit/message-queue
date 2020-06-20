@@ -43,7 +43,7 @@ func main() {
 	routers.Message(e)
 	// Start server
 	go func() {
-		port := "9090"
+		port := "8080"
 		logger.Info("Starting at port: " + port)
 		err := e.Start(":" + port)
 		if err != nil {

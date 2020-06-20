@@ -6,14 +6,20 @@ import (
 )
 
 type objResponse struct {
-	HttpCode        int    `json:"http_code"`
-	Code            string `json:"code"`
-	Message         string `json:"message"`
-	OriginalMessage string `json:"original_message,omitempty"`
+	HttpCode int    `json:"http_code,omitempty" bson:"http_code,omitempty"`
+	Code     string `json:"code,omitempty" bson:"code,omitempty"`
+	Message  string `json:"message,omitempty" bson:"message,omitempty"`
 }
 
-func ParseError(res http.Response) *objResponse {
-	error := objResponse{}
-	json.NewDecoder(res.Body).Decode(&error)
-	return &error
+func ParseError(err interface{}) *objResponse {
+	errObj := objResponse{}
+	switch v := err.(type) {
+	case http.Response:
+		json.NewDecoder(v.Body).Decode(&errObj)
+		break
+	case error:
+		errObj.Message = v.Error()
+	}
+
+	return &errObj
 }
