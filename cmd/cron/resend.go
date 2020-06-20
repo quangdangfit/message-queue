@@ -3,6 +3,7 @@ package main
 import (
 	"gomq/dbs"
 	"gomq/msgQueue"
+	"gomq/utils"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
@@ -22,7 +23,7 @@ func main() {
 
 		if err != nil {
 			logger.Error("Failed to resend msg: ", msg.RoutingKey, msg.OriginModel, msg.OriginCode, err)
-			msg.Logs = err.Error()
+			msg.Logs = append(msg.Logs, utils.ParseError(err))
 			msg.Status = dbs.OutMessageStatusFailed
 		} else {
 			msg.Status = dbs.OutMessageStatusSent
