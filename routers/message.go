@@ -6,7 +6,7 @@ import (
 )
 
 func Message(e *echo.Echo) {
-	msgRoute := e.Group("/api/v1/mq_service/")
+	msgRoute := e.Group("/api/v1/queue/")
 
 	sender := service.NewSender()
 	msgRoute.POST("messages", sender.PublishMessage)

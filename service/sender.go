@@ -16,7 +16,7 @@ type Sender interface {
 	PublishMessage(c echo.Context) (err error)
 	parseMessage(c echo.Context, msgRequest models.MessageRequest) (
 		*models.OutMessage, error)
-	getApiKey(c echo.Context) string
+	getAPIKey(c echo.Context) string
 }
 
 type sender struct {
@@ -35,8 +35,8 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
 
-	validate := validator.New()
-	if err = validate.Struct(req); err != nil {
+	validator := validator.New()
+	if err = validator.Struct(req); err != nil {
 		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{})
 	}
@@ -65,11 +65,11 @@ func (s *sender) parseMessage(c echo.Context, msgRequest models.MessageRequest) 
 		return &message, err
 	}
 	message.Status = dbs.OutMessageStatusWait
-	message.ApiKey = s.getApiKey(c)
+	message.APIKey = s.getAPIKey(c)
 
 	return &message, nil
 }
 
-func (s *sender) getApiKey(c echo.Context) string {
+func (s *sender) getAPIKey(c echo.Context) string {
 	return c.Request().Header.Get("X-Api-Key")
 }

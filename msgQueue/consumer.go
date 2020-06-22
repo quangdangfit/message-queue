@@ -22,6 +22,7 @@ const (
 type Consumer interface {
 	MessageQueue
 	RunConsumer(handler func([]byte) bool)
+	getHeaderKey(msg amqp.Delivery, key string) string
 	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
 	subscribe() (<-chan amqp.Delivery, error)
@@ -86,7 +87,7 @@ func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 	cons.startConsuming(deliveries, handler, threads)
 }
 
-func (cons *consumer) getHeader(msg amqp.Delivery, key string) string {
+func (cons *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
 	if msg.Headers[key] != nil {
 		return msg.Headers[key].(string)
 	}
@@ -100,9 +101,9 @@ func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
 	json.Unmarshal(msg.Body, &payload)
 	message := models.InMessage{
 		Payload:     payload,
-		OriginCode:  cons.getHeader(msg, "origin_code"),
-		OriginModel: cons.getHeader(msg, "origin_model"),
-		ApiKey:      cons.getHeader(msg, "api_key"),
+		OriginCode:  msg.Headers["origin_code"].(string),
+		OriginModel: msg.Headers["origin_model"].(string),
+		APIKey:      cons.getHeaderKey(msg, "api_key"),
 	}
 	return &message, nil
 }
@@ -221,7 +222,7 @@ func (cons *consumer) handle(msg amqp.Delivery) {
 	_, err := receiver.HandleMessage(message, msg.RoutingKey)
 	if err != nil {
 		logger.Errorf("Failed to handle message, routing_key %s, "+
-			"model %s, code %s", message.RoutingKey,
-			message.OriginModel, message.OriginCode)
+			"model %s, code %s, error: %s", message.RoutingKey.Name,
+			message.OriginModel, message.OriginCode, err)
 	}
 }

@@ -11,7 +11,7 @@
 * Run Consumer: `go run -mod=vendor gomq/cmd/consumer/mqConsumer.go`
 * Publish message:
 ```
-curl --location --request POST 'localhost:8080/api/v1/mq_service/messages' \
+curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "routing_key": "routing.key",
