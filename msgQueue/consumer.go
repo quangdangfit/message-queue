@@ -86,6 +86,13 @@ func (cons *consumer) RunConsumer(handler func([]byte) bool) {
 	cons.startConsuming(deliveries, handler, threads)
 }
 
+func (cons *consumer) getHeader(msg amqp.Delivery, key string) string {
+	if msg.Headers[key] != nil {
+		return msg.Headers[key].(string)
+	}
+	return ""
+}
+
 func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
 	*models.InMessage, error) {
 
@@ -93,8 +100,9 @@ func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
 	json.Unmarshal(msg.Body, &payload)
 	message := models.InMessage{
 		Payload:     payload,
-		OriginCode:  msg.Headers["origin_code"].(string),
-		OriginModel: msg.Headers["origin_model"].(string),
+		OriginCode:  cons.getHeader(msg, "origin_code"),
+		OriginModel: cons.getHeader(msg, "origin_model"),
+		ApiKey:      cons.getHeader(msg, "api_key"),
 	}
 	return &message, nil
 }

@@ -2,13 +2,13 @@ package msgQueue
 
 import (
 	"encoding/json"
+	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/models"
 	"gomq/msgHandler"
-
-	"github.com/streadway/amqp"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"gomq/utils"
 )
 
 type Publisher interface {
@@ -67,6 +67,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	headers := amqp.Table{
 		"origin_code":  message.OriginCode,
 		"origin_model": message.OriginModel,
+		"api_key":      message.ApiKey,
 	}
 	if err = channel.Publish(
 		pub.config.ExchangeName, // publish to an exchange
@@ -84,6 +85,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 		},
 	); err != nil {
 		message.Status = dbs.OutMessageStatusFailed
+		message.Logs = append(message.Logs, utils.ParseError(err))
 		logger.Error("Failed to publish message ", err)
 		return err
 	}

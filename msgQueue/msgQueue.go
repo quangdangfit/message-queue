@@ -5,13 +5,17 @@ import (
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/models"
+	"time"
 
 	"github.com/streadway/amqp"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
-const RecoverIntervalTime = 6 * 60
-const TimeoutRetry = 3
+const (
+	RecoverIntervalTime = 6 * 60
+	TimeoutRetry        = 3
+	WaitTimeReconnect   = 5
+)
 
 type MessageQueue interface {
 	newConnection() (*amqp.Connection, error)
@@ -39,9 +43,12 @@ type messageQueue struct {
 
 func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
-	if err != nil {
+	for err != nil {
 		logger.Error("Cannot create new connection to AMQP: ", err)
-		return nil, err
+
+		logger.Infof("Wait %d seconds to reconnection", WaitTimeReconnect)
+		time.Sleep(time.Second * WaitTimeReconnect)
+		_, err = mq.newConnection()
 	}
 	mq.connection = conn
 

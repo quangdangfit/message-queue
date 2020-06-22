@@ -3,6 +3,7 @@ package msgHandler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gomq/dbs"
 	"gomq/models"
@@ -34,7 +35,7 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	inRoutingKey, err := dbs.GetRoutingKey(routingKey)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
-		message.Logs = err.Error()
+		message.Logs = append(message.Logs, utils.ParseError(err))
 		r.storeMessage(message)
 		logger.Error("Cannot find routing key", err)
 		return message, err
@@ -44,15 +45,20 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	res, err := r.callAPI(message)
 	if err != nil {
 		message.Status = dbs.InMessageStatusWaitRetry
-		message.Logs = err.Error()
-	} else if res.StatusCode != http.StatusOK {
-		message.Status = dbs.InMessageStatusWaitRetry
-		message.Logs = utils.ParseError(*res)
+		message.Logs = append(message.Logs, utils.ParseError(err))
+		r.storeMessage(message)
+		return message, err
 	}
 
-	r.storeMessage(message)
+	message.Status = dbs.InMessageStatusSuccess
+	if res.StatusCode != http.StatusOK {
+		message.Status = dbs.InMessageStatusWaitRetry
+		err = errors.New("failed to call API")
+	}
+	message.Logs = append(message.Logs, utils.ParseError(res))
 
-	return message, err
+	r.storeMessage(message)
+	return message, nil
 }
 
 func (r *receiver) storeMessage(message *models.InMessage) (err error) {
@@ -68,6 +74,7 @@ func (r *receiver) callAPI(message *models.InMessage) (*http.Response, error) {
 		routingKey.APIMethod, routingKey.APIUrl, bytes.NewBuffer(bytesPayload))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", "ahsfishdi"))
+	req.Header.Set("x-api-key", message.ApiKey)
 
 	client := http.Client{
 		Timeout: RequestTimeout,
