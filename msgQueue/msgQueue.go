@@ -44,11 +44,11 @@ type messageQueue struct {
 func (mq *messageQueue) newConnection() (*amqp.Connection, error) {
 	conn, err := amqp.Dial(mq.config.AMQPUrl)
 	for err != nil {
-		logger.Error("Cannot create new connection to AMQP: ", err)
+		logger.Error("Failed to create new connection to AMQP: ", err)
 
-		logger.Infof("Wait %d seconds to reconnection", WaitTimeReconnect)
-		time.Sleep(time.Second * WaitTimeReconnect)
-		_, err = mq.newConnection()
+		logger.Infof("Sleep %d seconds to reconnect", WaitTimeReconnect)
+		time.Sleep(WaitTimeReconnect * time.Second)
+		conn, err = amqp.Dial(mq.config.AMQPUrl)
 	}
 	mq.connection = conn
 

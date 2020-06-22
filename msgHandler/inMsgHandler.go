@@ -32,12 +32,13 @@ func NewInMessageHandler() InMessageHandler {
 func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	*models.InMessage, error) {
 
+	defer r.storeMessage(message)
+
 	inRoutingKey, err := dbs.GetRoutingKey(routingKey)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseError(err))
-		r.storeMessage(message)
-		logger.Error("Cannot find routing key", err)
+		logger.Error("Cannot find routing key ", err)
 		return message, err
 	}
 	message.RoutingKey = *inRoutingKey
@@ -46,19 +47,28 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	if err != nil {
 		message.Status = dbs.InMessageStatusWaitRetry
 		message.Logs = append(message.Logs, utils.ParseError(err))
-		r.storeMessage(message)
+		return message, err
+
+	}
+
+	if res.StatusCode == http.StatusNotFound || res.StatusCode == http.StatusUnauthorized {
+		message.Status = dbs.InMessageStatusWaitRetry
+		err = errors.New(fmt.Sprintf("not found url %s", message.RoutingKey.APIUrl))
+		message.Logs = append(message.Logs, utils.ParseError(res.Status))
+		return message, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		message.Status = dbs.InMessageStatusWaitRetry
+		err = errors.New("failed to call API")
+		message.Logs = append(message.Logs, utils.ParseError(res))
 		return message, err
 	}
 
 	message.Status = dbs.InMessageStatusSuccess
-	if res.StatusCode != http.StatusOK {
-		message.Status = dbs.InMessageStatusWaitRetry
-		err = errors.New("failed to call API")
-	}
 	message.Logs = append(message.Logs, utils.ParseError(res))
 
-	r.storeMessage(message)
-	return message, nil
+	return message, err
 }
 
 func (r *receiver) storeMessage(message *models.InMessage) (err error) {
@@ -74,7 +84,7 @@ func (r *receiver) callAPI(message *models.InMessage) (*http.Response, error) {
 		routingKey.APIMethod, routingKey.APIUrl, bytes.NewBuffer(bytesPayload))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", "ahsfishdi"))
-	req.Header.Set("x-api-key", message.ApiKey)
+	req.Header.Set("x-api-key", message.APIKey)
 
 	client := http.Client{
 		Timeout: RequestTimeout,
