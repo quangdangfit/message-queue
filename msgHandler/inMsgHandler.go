@@ -22,17 +22,21 @@ type InMessageHandler interface {
 	callAPI(message *models.InMessage) (*http.Response, error)
 }
 
-type receiver struct{}
+type receiver struct {
+	store bool
+}
 
-func NewInMessageHandler() InMessageHandler {
-	r := receiver{}
+func NewInMessageHandler(store bool) InMessageHandler {
+	r := receiver{store: store}
 	return &r
 }
 
 func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	*models.InMessage, error) {
 
-	defer r.storeMessage(message)
+	if r.store {
+		defer r.storeMessage(message)
+	}
 
 	inRoutingKey, err := dbs.GetRoutingKey(routingKey)
 	if err != nil {

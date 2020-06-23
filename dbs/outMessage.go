@@ -16,9 +16,9 @@ const (
 	OutMessageStatusInvalid  = "invalid"
 )
 
-func GetWaitOutMessage(limit int) ([]models.OutMessage, error) {
+func GetOutMessageByStatus(status string, limit int) ([]models.OutMessage, error) {
 	message := []models.OutMessage{}
-	query := bson.M{"status": "wait"}
+	query := bson.M{"status": status}
 
 	_, err := Database.FindManyPaging(CollectionOutMessage, query, "-_id", 1,
 		limit, &message)

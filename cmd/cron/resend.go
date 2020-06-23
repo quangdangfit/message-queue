@@ -11,7 +11,7 @@ import (
 const ResendOutMessageLimit = 100
 
 func main() {
-	messages, _ := dbs.GetWaitOutMessage(ResendOutMessageLimit)
+	messages, _ := dbs.GetOutMessageByStatus(dbs.OutMessageStatusWait, ResendOutMessageLimit)
 	if messages == nil {
 		logger.Info("Not found any wait message!")
 		return
