@@ -2,7 +2,7 @@ package main
 
 import (
 	"gomq/dbs"
-	"gomq/msgHandler"
+	"gomq/handlers"
 	"gomq/utils"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
@@ -20,7 +20,7 @@ func main() {
 		return
 	}
 
-	inHandler := msgHandler.NewInMessageHandler(false)
+	inHandler := handlers.NewInMessageHandler(false)
 	for _, msg := range messages {
 		_, err := inHandler.HandleMessage(&msg, msg.RoutingKey.Name)
 		if err != nil {

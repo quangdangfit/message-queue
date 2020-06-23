@@ -1,12 +1,12 @@
-package service
+package services
 
 import (
-	"github.com/jinzhu/copier"
 	"gomq/dbs"
 	"gomq/models"
-	"gomq/msgQueue"
+	"gomq/queue"
 	"net/http"
 
+	"github.com/jinzhu/copier"
 	"github.com/labstack/echo"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gopkg.in/go-playground/validator.v9"
@@ -20,11 +20,11 @@ type Sender interface {
 }
 
 type sender struct {
-	pub msgQueue.Publisher
+	pub queue.Publisher
 }
 
 func NewSender() Sender {
-	pub := msgQueue.NewPublisher(true)
+	pub := queue.NewPublisher(true)
 	return &sender{pub: pub}
 }
 

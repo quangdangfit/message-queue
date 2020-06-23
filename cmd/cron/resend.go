@@ -2,7 +2,7 @@ package main
 
 import (
 	"gomq/dbs"
-	"gomq/msgQueue"
+	"gomq/queue"
 	"gomq/utils"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
@@ -17,7 +17,7 @@ func main() {
 		return
 	}
 
-	pub := msgQueue.NewPublisher(false)
+	pub := queue.NewPublisher(false)
 	for _, msg := range messages {
 		err := pub.Publish(&msg, true)
 

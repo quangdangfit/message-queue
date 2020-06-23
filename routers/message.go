@@ -1,13 +1,14 @@
 package routers
 
 import (
+	"gomq/services"
+
 	"github.com/labstack/echo"
-	"gomq/service"
 )
 
 func Message(e *echo.Echo) {
 	msgRoute := e.Group("/api/v1/queue/")
 
-	sender := service.NewSender()
+	sender := services.NewSender()
 	msgRoute.POST("messages", sender.PublishMessage)
 }

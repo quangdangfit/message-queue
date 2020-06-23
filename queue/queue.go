@@ -1,4 +1,4 @@
-package msgQueue
+package queue
 
 import (
 	"fmt"

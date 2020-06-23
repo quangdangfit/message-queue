@@ -1,10 +1,11 @@
 package dbs
 
 import (
-	"github.com/google/uuid"
 	"gomq/models"
-	"gopkg.in/mgo.v2/bson"
 	"time"
+
+	"github.com/google/uuid"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
