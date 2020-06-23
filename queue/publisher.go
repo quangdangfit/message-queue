@@ -1,14 +1,15 @@
-package msgQueue
+package queue
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gomq/config"
 	"gomq/dbs"
+	"gomq/handlers"
 	"gomq/models"
-	"gomq/msgHandler"
 	"gomq/utils"
+
+	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 type Publisher interface {
@@ -96,7 +97,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 func (pub *publisher) confirmAndHandle(message *models.OutMessage, confirms chan amqp.Confirmation) error {
 	pub.confirmOne(message, confirms)
 
-	outHandler := msgHandler.NewOutMessageHandler()
+	outHandler := handlers.NewOutMessageHandler()
 	_, err := outHandler.HandleMessage(message, pub.store)
 	return err
 }

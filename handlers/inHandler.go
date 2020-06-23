@@ -1,4 +1,4 @@
-package msgHandler
+package handlers
 
 import (
 	"bytes"

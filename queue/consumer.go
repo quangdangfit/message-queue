@@ -1,16 +1,16 @@
-package msgQueue
+package queue
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/manucorporat/try"
 	"gomq/config"
+	"gomq/handlers"
 	"gomq/models"
-	"gomq/msgHandler"
 	"runtime"
 	"sync/atomic"
 	"time"
 
+	"github.com/manucorporat/try"
 	"github.com/streadway/amqp"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
@@ -218,7 +218,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 
 func (cons *consumer) handle(msg amqp.Delivery) {
 	message, _ := cons.parseMessageFromDelivery(msg)
-	receiver := msgHandler.NewInMessageHandler(true)
+	receiver := handlers.NewInMessageHandler(true)
 	_, err := receiver.HandleMessage(message, msg.RoutingKey)
 	if err != nil {
 		logger.Errorf("Failed to handle message, routing_key %s, "+
