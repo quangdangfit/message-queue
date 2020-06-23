@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gomq/dbs"
 	"gomq/models"
+	"gomq/repositories"
 	"gomq/utils"
 	"net/http"
 	"time"
@@ -38,7 +39,8 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 		defer r.storeMessage(message)
 	}
 
-	inRoutingKey, err := dbs.GetRoutingKey(routingKey)
+	routingRepo := repositories.NewRoutingKeyRepo()
+	inRoutingKey, err := routingRepo.GetRoutingKey(routingKey)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseError(err))
