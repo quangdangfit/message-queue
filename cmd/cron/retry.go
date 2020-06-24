@@ -3,7 +3,8 @@ package main
 import (
 	"gomq/dbs"
 	"gomq/handlers"
-	"gomq/utils"
+	"gomq/repositories"
+	"gopkg.in/mgo.v2/bson"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
@@ -14,32 +15,32 @@ const (
 )
 
 func main() {
-	messages, _ := dbs.GetInMessageByStatus(dbs.InMessageStatusWaitRetry, RetryInMessageLimit)
+	repo := repositories.NewInMessageRepo()
+
+	query := bson.M{"status": dbs.InMessageStatusWaitRetry}
+	messages, _ := repo.GetInMessages(query, RetryInMessageLimit)
 	if messages == nil {
-		logger.Info("Not found any wait retry message!")
+		logger.Info("[Retry Message] Not found any wait_retry message!")
 		return
 	}
 
 	inHandler := handlers.NewInMessageHandler(false)
-	for _, msg := range messages {
-		_, err := inHandler.HandleMessage(&msg, msg.RoutingKey.Name)
-		if err != nil {
-			logger.Error("Failed to retry msg: ", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
-			msg.Logs = append(msg.Logs, utils.ParseError(err))
-			msg.Attempts += 1
 
-			msg.Status = dbs.InMessageStatusWaitRetry
-			if msg.Attempts > MaxRetryTimes {
-				msg.Status = dbs.InMessageStatusFailed
-			}
-		} else {
-			msg.Status = dbs.InMessageStatusSuccess
-		}
-
-		err = dbs.UpdateInMessage(&msg)
-		if err != nil {
-			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
+	logger.Infof("[Retry Message] Found %d wait_retry messages!", len(*messages))
+	for _, msg := range *messages {
+		err := inHandler.HandleMessage(&msg, msg.RoutingKey.Name)
+		if err == nil {
 			continue
 		}
+
+		msg.Attempts += 1
+		if msg.Attempts >= MaxRetryTimes {
+			msg.Status = dbs.InMessageStatusFailed
+		}
+		err = repo.UpdateInMessage(&msg)
+		if err != nil {
+			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
+		}
 	}
+	logger.Info("[Retry Message] Finish!")
 }

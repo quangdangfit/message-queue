@@ -16,15 +16,14 @@ func main() {
 
 	query := bson.M{"status": dbs.OutMessageStatusWait}
 	messages, _ := repo.GetOutMessages(query, ResendOutMessageLimit)
-	count := len(*messages)
-	if count == 0 {
+	if messages == nil {
 		logger.Info("[Resend Message] Not found any wait message!")
 		return
 	}
 
 	pub := queue.NewPublisher()
 
-	logger.Infof("[Resend Message] Found %d wait messages!", count)
+	logger.Infof("[Resend Message] Found %d wait messages!", len(*messages))
 	for _, msg := range *messages {
 		pub.Publish(&msg, true)
 	}
