@@ -9,35 +9,37 @@ import (
 	"gomq/models"
 	"gomq/repositories"
 	"gomq/utils"
+	"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"time"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
-const RequestTimeout = time.Duration(60 * time.Second)
+const (
+	RequestTimeout = 60
+)
 
 type InMessageHandler interface {
-	HandleMessage(message *models.InMessage, routingKey string) (*models.InMessage, error)
+	HandleMessage(message *models.InMessage, routingKey string) error
 	storeMessage(message *models.InMessage) (err error)
 	callAPI(message *models.InMessage) (*http.Response, error)
 }
 
-type receiver struct {
-	store bool
+type inHandler struct {
+	repo repositories.InMessageRepository
 }
 
 func NewInMessageHandler(store bool) InMessageHandler {
-	r := receiver{store: store}
+	r := inHandler{
+		repo: repositories.NewInMessageRepo(),
+	}
 	return &r
 }
 
-func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
-	*models.InMessage, error) {
+func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) error {
 
-	if r.store {
-		defer r.storeMessage(message)
-	}
+	defer r.storeMessage(message)
 
 	routingRepo := repositories.NewRoutingKeyRepo()
 	inRoutingKey, err := routingRepo.GetRoutingKey(routingKey)
@@ -45,7 +47,7 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 		message.Status = dbs.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseError(err))
 		logger.Error("Cannot find routing key ", err)
-		return message, err
+		return err
 	}
 	message.RoutingKey = *inRoutingKey
 
@@ -53,36 +55,52 @@ func (r *receiver) HandleMessage(message *models.InMessage, routingKey string) (
 	if err != nil {
 		message.Status = dbs.InMessageStatusWaitRetry
 		message.Logs = append(message.Logs, utils.ParseError(err))
-		return message, err
-
+		return err
 	}
 
 	if res.StatusCode == http.StatusNotFound || res.StatusCode == http.StatusUnauthorized {
 		message.Status = dbs.InMessageStatusWaitRetry
-		err = errors.New(fmt.Sprintf("not found url %s", message.RoutingKey.APIUrl))
+		err = errors.New(fmt.Sprintf("failed to call API %s", res.Status))
 		message.Logs = append(message.Logs, utils.ParseError(res.Status))
-		return message, err
+		return err
 	}
 
 	if res.StatusCode != http.StatusOK {
 		message.Status = dbs.InMessageStatusWaitRetry
 		err = errors.New("failed to call API")
 		message.Logs = append(message.Logs, utils.ParseError(res))
-		return message, err
+		return err
 	}
 
 	message.Status = dbs.InMessageStatusSuccess
 	message.Logs = append(message.Logs, utils.ParseError(res))
 
-	return message, err
-}
-
-func (r *receiver) storeMessage(message *models.InMessage) (err error) {
-	message, _ = dbs.AddInMessage(message)
 	return nil
 }
 
-func (r *receiver) callAPI(message *models.InMessage) (*http.Response, error) {
+func (r *inHandler) storeMessage(message *models.InMessage) (err error) {
+	msg, err := r.repo.GetSingleInMessage(bson.M{"id": message.ID})
+	if msg != nil {
+		err = r.repo.UpdateInMessage(message)
+		if err != nil {
+			logger.Errorf("[Handle InMsg] Failed to update msg %s, %s", message.ID, err)
+			return err
+		}
+
+		logger.Infof("[Handle InMsg] Updated msg %s", message.ID)
+		return nil
+	}
+
+	err = r.repo.AddInMessage(message)
+	if err != nil {
+		logger.Errorf("[Handle InMsg] Failed to insert msg %s, %s", message.ID, err)
+		return err
+	}
+	logger.Infof("[Handle InMsg] Inserted msg %s", message.ID)
+	return nil
+}
+
+func (r *inHandler) callAPI(message *models.InMessage) (*http.Response, error) {
 	routingKey := message.RoutingKey
 
 	bytesPayload, _ := json.Marshal(message.Payload)
@@ -93,7 +111,7 @@ func (r *receiver) callAPI(message *models.InMessage) (*http.Response, error) {
 	req.Header.Set("x-api-key", message.APIKey)
 
 	client := http.Client{
-		Timeout: RequestTimeout,
+		Timeout: RequestTimeout * time.Second,
 	}
 	res, err := client.Do(req)
 

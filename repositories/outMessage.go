@@ -56,11 +56,11 @@ func (msg *outMessageRepo) AddOutMessage(message *models.OutMessage) error {
 
 func (msg *outMessageRepo) UpdateOutMessage(message *models.OutMessage) error {
 	selector := bson.M{"id": message.ID}
-	payload := map[string]interface{}{
-		"updated_time": time.Now(),
-		"status":       message.Status,
-		"logs":         message.Logs,
-	}
+
+	var payload map[string]interface{}
+	message.UpdatedTime = time.Now()
+	data, _ := bson.Marshal(message)
+	bson.Unmarshal(data, &payload)
 
 	change := bson.M{"$set": payload}
 	err := dbs.Database.UpdateOne(dbs.CollectionOutMessage, selector, change)

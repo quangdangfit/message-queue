@@ -21,6 +21,15 @@ const (
 	OutMessageStatusFailed   = "failed"
 	OutMessageStatusCancel   = "canceled"
 	OutMessageStatusInvalid  = "invalid"
+
+	InMessageStatusReceived     = "received"
+	InMessageStatusSuccess      = "success"
+	InMessageStatusWaitRetry    = "wait_retry"
+	InMessageStatusWorking      = "working"
+	InMessageStatusFailed       = "failed"
+	InMessageStatusInvalid      = "invalid"
+	InMessageStatusWaitPrevMsg  = "wait_prev_msg"
+	InMessageStatusWaitCanceled = "canceled"
 )
 
 func init() {
