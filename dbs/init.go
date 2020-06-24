@@ -14,6 +14,13 @@ const (
 	CollectionInMessage  = "in_message"
 	CollectionOutMessage = "out_message"
 	CollectionRoutingKey = "routing_key"
+
+	OutMessageStatusWait     = "wait"
+	OutMessageStatusSent     = "sent"
+	OutMessageStatusSentWait = "sent_wait"
+	OutMessageStatusFailed   = "failed"
+	OutMessageStatusCancel   = "canceled"
+	OutMessageStatusInvalid  = "invalid"
 )
 
 func init() {

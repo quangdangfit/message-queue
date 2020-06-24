@@ -3,36 +3,30 @@ package main
 import (
 	"gomq/dbs"
 	"gomq/queue"
-	"gomq/utils"
+	"gomq/repositories"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const ResendOutMessageLimit = 100
 
 func main() {
-	messages, _ := dbs.GetOutMessageByStatus(dbs.OutMessageStatusWait, ResendOutMessageLimit)
-	if messages == nil {
-		logger.Info("Not found any wait message!")
+	repo := repositories.NewOutMessageRepo()
+
+	query := bson.M{"status": dbs.OutMessageStatusWait}
+	messages, _ := repo.GetOutMessages(query, ResendOutMessageLimit)
+	count := len(*messages)
+	if count == 0 {
+		logger.Info("[Resend Message] Not found any wait message!")
 		return
 	}
 
-	pub := queue.NewPublisher(false)
-	for _, msg := range messages {
-		err := pub.Publish(&msg, true)
+	pub := queue.NewPublisher()
 
-		if err != nil {
-			logger.Error("Failed to resend msg: ", msg.RoutingKey, msg.OriginModel, msg.OriginCode, err)
-			msg.Logs = append(msg.Logs, utils.ParseError(err))
-			msg.Status = dbs.OutMessageStatusFailed
-		} else {
-			msg.Status = dbs.OutMessageStatusSent
-		}
-
-		err = dbs.UpdateOutMessage(&msg)
-		if err != nil {
-			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s", msg.RoutingKey, msg.OriginModel, msg.OriginCode, err)
-			continue
-		}
+	logger.Infof("[Resend Message] Found %d wait messages!", count)
+	for _, msg := range *messages {
+		pub.Publish(&msg, true)
 	}
+	logger.Info("[Resend Message] Finish!")
 }

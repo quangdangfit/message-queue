@@ -15,15 +15,15 @@ import (
 type Publisher interface {
 	MessageQueue
 	Publish(message *models.OutMessage, reliable bool) error
-	confirmAndHandle(message *models.OutMessage, confirms chan amqp.Confirmation) error
+	handle(message *models.OutMessage) error
+	confirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool
 }
 
 type publisher struct {
 	messageQueue
-	store bool
 }
 
-func NewPublisher(store bool) Publisher {
+func NewPublisher() Publisher {
 	var pub publisher
 
 	pub.config = &models.AMQPConfig{
@@ -32,7 +32,6 @@ func NewPublisher(store bool) Publisher {
 		ExchangeType: config.Config.AMQP.ExchangeType,
 		QueueName:    config.Config.AMQP.QueueName,
 	}
-	pub.store = store
 	_, err := pub.newConnection()
 	if err != nil {
 		logger.Error("Publisher create new connection failed!")
@@ -55,13 +54,13 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	defer channel.Close()
 
 	// Reliable publisher confirms require confirm.select support from the connection.
+	var confirms chan amqp.Confirmation
 	if reliable {
 		if err := channel.Confirm(false); err != nil {
 			logger.Errorf("Channel could not be put into confirm mode: %s", err)
 			return err
 		}
-		confirms := channel.NotifyPublish(make(chan amqp.Confirmation, 1))
-		defer pub.confirmAndHandle(message, confirms)
+		confirms = channel.NotifyPublish(make(chan amqp.Confirmation, 1))
 	}
 
 	payload, _ := json.Marshal(message.Payload)
@@ -91,13 +90,36 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 		return err
 	}
 
+	if confirms != nil {
+		defer func() {
+			pub.confirmOne(message, confirms)
+			pub.handle(message)
+		}()
+	}
+
 	return nil
 }
 
-func (pub *publisher) confirmAndHandle(message *models.OutMessage, confirms chan amqp.Confirmation) error {
-	pub.confirmOne(message, confirms)
-
+func (pub *publisher) handle(message *models.OutMessage) error {
 	outHandler := handlers.NewOutMessageHandler()
-	_, err := outHandler.HandleMessage(message, pub.store)
-	return err
+	return outHandler.HandleMessage(message)
+}
+
+func (pub *publisher) confirmOne(message *models.OutMessage,
+	confirms <-chan amqp.Confirmation) bool {
+
+	confirmed := <-confirms
+	if confirmed.Ack {
+		logger.Info("Confirmed delivery with delivery tag: ",
+			confirmed.DeliveryTag)
+
+		message.Status = dbs.OutMessageStatusSent
+		return true
+	}
+
+	logger.Info("Failed delivery of delivery tag: ",
+		confirmed.DeliveryTag)
+
+	message.Status = dbs.OutMessageStatusSentWait
+	return false
 }
