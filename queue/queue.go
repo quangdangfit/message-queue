@@ -3,7 +3,6 @@ package queue
 import (
 	"fmt"
 	"gomq/config"
-	"gomq/dbs"
 	"gomq/models"
 	"time"
 
@@ -26,9 +25,6 @@ type MessageQueue interface {
 	declareExchange() error
 	declareQueue() error
 	bindQueue(routingKey string) error
-	confirmOne(message *models.OutMessage,
-		confirms <-chan amqp.Confirmation) bool
-	setup()
 	ChanelIsClosed() bool
 }
 
@@ -176,25 +172,6 @@ func (mq *messageQueue) bindQueue(routingKey string) error {
 		return err
 	}
 	return nil
-}
-
-func (mq *messageQueue) confirmOne(message *models.OutMessage,
-	confirms <-chan amqp.Confirmation) bool {
-
-	confirmed := <-confirms
-	if confirmed.Ack {
-		logger.Info("Confirmed delivery with delivery tag: ",
-			confirmed.DeliveryTag)
-
-		message.Status = dbs.OutMessageStatusSent
-		return true
-	}
-
-	logger.Info("Failed delivery of delivery tag: ",
-		confirmed.DeliveryTag)
-
-	message.Status = dbs.OutMessageStatusSentWait
-	return false
 }
 
 func (mq *messageQueue) setup() {

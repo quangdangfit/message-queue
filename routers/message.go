@@ -7,8 +7,8 @@ import (
 )
 
 func Message(e *echo.Echo) {
-	msgRoute := e.Group("/api/v1/queue/")
+	msgRoute := e.Group("/api/v1/queue")
 
 	sender := services.NewSender()
-	msgRoute.POST("messages", sender.PublishMessage)
+	msgRoute.POST("/messages", sender.PublishMessage)
 }

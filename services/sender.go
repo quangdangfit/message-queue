@@ -24,7 +24,7 @@ type sender struct {
 }
 
 func NewSender() Sender {
-	pub := queue.NewPublisher(true)
+	pub := queue.NewPublisher()
 	return &sender{pub: pub}
 }
 

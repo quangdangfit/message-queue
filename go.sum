@@ -201,6 +201,8 @@ gitlab.com/quangdangfit/gocommon v1.0.3 h1:OEg2xX37lQpbzrsxyUDe8ytP8VwohW7J0SsS3
 gitlab.com/quangdangfit/gocommon v1.0.3/go.mod h1:AC6GWtgU8g4+g1wpbVLFk6mvrT3GK17GZKKgv5ExOXQ=
 gitlab.com/quangdangfit/gocommon v1.0.4 h1:+s9jRGTI8lOZ/G53zilOJCXJ2CK2SuXRlMRBCGrHhjg=
 gitlab.com/quangdangfit/gocommon v1.0.4/go.mod h1:AC6GWtgU8g4+g1wpbVLFk6mvrT3GK17GZKKgv5ExOXQ=
+gitlab.com/quangdangfit/gocommon v1.0.5 h1:bW992wJwS9ASn0PNNr9tqisAq5Bm82qsXkkBZgYeJNM=
+gitlab.com/quangdangfit/gocommon v1.0.5/go.mod h1:AC6GWtgU8g4+g1wpbVLFk6mvrT3GK17GZKKgv5ExOXQ=
 gitlab.com/quangdangfit/godb v1.0.2 h1:ntK/FrUNk2VQs+p40FBgfX2qDj2u85X37shNCtz58Ow=
 gitlab.com/quangdangfit/godb v1.0.2/go.mod h1:F76T6Y0YdnV8dyOPQff24CvusFbxw+SvExwSVPaETM4=
 gitlab.com/transport4/lib.git v0.0.0-20200609030708-5cbccf123a48 h1:Ad4oU0YdT3x91BEgL5cgOA+3iCf/wWzZyGYgOl92mY4=
