@@ -28,16 +28,20 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 
 
 #### Structure
+* `cmd/`: define commands
+* `config/`: define configuration
+* `dbs/`: init database connection, create index
+* `handlers/`: handle messages (store DB, call api,...)
+* `models/`: define orm models
+* `queue/`: contains publisher and consumer to send and receive messages
+* `repositories/`: define repository to access data
 * `routers/`: define api url, request body, params
 * `services/`: wrapper message before publish
-* `msgQueue/`: contains publisher and consumer to send and receive messages
-* `msgHandler/`: handle messages (store DB, call api,...)
-* `models/`: define orm models
-* `config/`: define configuration
+* `utils/`: common package
 
 #### 📙 Libraries
-- Echo: https://echo.labstack.com/
-- AMQP Package: https://godoc.org/github.com/streadway/amqp
+- [Echo Framework](https://echo.labstack.com/)
+- [AMQP Package](https://godoc.org/github.com/streadway/amqp)
 
 #### Contributing
 If you want to contribute to this boilerplate, clone the repository and just start making pull requests.
