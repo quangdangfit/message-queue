@@ -19,17 +19,17 @@ const (
 	OutMessageStatusSent     = "sent"
 	OutMessageStatusSentWait = "sent_wait"
 	OutMessageStatusFailed   = "failed"
-	OutMessageStatusCancel   = "canceled"
+	OutMessageStatusCanceled = "canceled"
 	OutMessageStatusInvalid  = "invalid"
 
-	InMessageStatusReceived     = "received"
-	InMessageStatusSuccess      = "success"
-	InMessageStatusWaitRetry    = "wait_retry"
-	InMessageStatusWorking      = "working"
-	InMessageStatusFailed       = "failed"
-	InMessageStatusInvalid      = "invalid"
-	InMessageStatusWaitPrevMsg  = "wait_prev_msg"
-	InMessageStatusWaitCanceled = "canceled"
+	InMessageStatusReceived    = "received"
+	InMessageStatusSuccess     = "success"
+	InMessageStatusWaitRetry   = "wait_retry"
+	InMessageStatusWorking     = "working"
+	InMessageStatusFailed      = "failed"
+	InMessageStatusInvalid     = "invalid"
+	InMessageStatusWaitPrevMsg = "wait_prev_msg"
+	InMessageStatusCanceled    = "canceled"
 )
 
 func init() {
