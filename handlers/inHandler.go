@@ -30,7 +30,7 @@ type inHandler struct {
 	repo repositories.InMessageRepository
 }
 
-func NewInMessageHandler(store bool) InMessageHandler {
+func NewInMessageHandler() InMessageHandler {
 	r := inHandler{
 		repo: repositories.NewInMessageRepo(),
 	}
@@ -50,6 +50,20 @@ func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) 
 		return err
 	}
 	message.RoutingKey = *inRoutingKey
+
+	prevRoutingKey, _ := routingRepo.GetPreviousRoutingKey(message.RoutingKey)
+	if prevRoutingKey != nil {
+		prevMsg, _ := r.getPreviousMessage(*message, prevRoutingKey.Name)
+
+		if prevMsg == nil || (prevMsg.Status != dbs.InMessageStatusSuccess &&
+			prevMsg.Status != dbs.InMessageStatusCanceled) {
+
+			message.Status = dbs.InMessageStatusWaitPrevMsg
+
+			logger.Warn("Set message to WAIT_PREV_MESSAGE")
+			return nil
+		}
+	}
 
 	res, err := r.callAPI(message)
 	if err != nil {
@@ -121,4 +135,21 @@ func (r *inHandler) callAPI(message *models.InMessage) (*http.Response, error) {
 	}
 
 	return res, nil
+}
+
+func (r *inHandler) getPreviousMessage(message models.InMessage, routingKey string) (
+	*models.InMessage, error) {
+
+	query := bson.M{
+		"origin_model":     message.OriginModel,
+		"origin_code":      message.OriginCode,
+		"routing_key.name": routingKey,
+	}
+	prevMsg, err := r.repo.GetSingleInMessage(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return prevMsg, nil
 }
