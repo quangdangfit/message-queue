@@ -15,7 +15,7 @@ type handler struct {
 
 func NewHandler() Handler {
 	return &handler{
-		repo: NewOutMessageRepo(),
+		repo: NewRepository(),
 	}
 }
 

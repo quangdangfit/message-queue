@@ -17,7 +17,7 @@ type Repository interface {
 
 type inRepo struct{}
 
-func NewInMessageRepo() Repository {
+func NewRepository() Repository {
 	return &inRepo{}
 }
 

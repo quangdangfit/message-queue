@@ -32,7 +32,7 @@ type handler struct {
 
 func NewHandler() Handler {
 	r := handler{
-		msgRepo:     NewInMessageRepo(),
+		msgRepo:     NewRepository(),
 		routingRepo: inrouting.NewRepository(),
 	}
 	return &r

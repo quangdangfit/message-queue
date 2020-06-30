@@ -17,7 +17,7 @@ type Repository interface {
 
 type outRepo struct{}
 
-func NewOutMessageRepo() Repository {
+func NewRepository() Repository {
 	return &outRepo{}
 }
 
