@@ -9,8 +9,8 @@ import (
 )
 
 type Repository interface {
-	GetSingleInMessage(query bson.M) (*InMessage, error)
-	GetInMessages(query bson.M, limit int) (*[]InMessage, error)
+	GetSingleInMessage(query map[string]interface{}) (*InMessage, error)
+	GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error)
 	AddInMessage(message *InMessage) error
 	UpdateInMessage(message *InMessage) error
 }
@@ -21,7 +21,7 @@ func NewInMessageRepo() Repository {
 	return &inRepo{}
 }
 
-func (msg *inRepo) GetSingleInMessage(query bson.M) (*InMessage, error) {
+func (msg *inRepo) GetSingleInMessage(query map[string]interface{}) (*InMessage, error) {
 	message := InMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
@@ -31,7 +31,7 @@ func (msg *inRepo) GetSingleInMessage(query bson.M) (*InMessage, error) {
 	return &message, nil
 }
 
-func (msg *inRepo) GetInMessages(query bson.M, limit int) (*[]InMessage, error) {
+func (msg *inRepo) GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error) {
 	message := []InMessage{}
 
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
