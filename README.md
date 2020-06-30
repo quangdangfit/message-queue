@@ -1,5 +1,5 @@
 # Message Queue Service
-### Golang, Echo, AMQP
+### Golang, Echo, AMQP, MongDB
 
 #### Setup
 * Create config file: `cp config/config.sample.yaml config/config.yaml`
@@ -7,8 +7,8 @@
 * Install require packages: `go mod vendor`
 
 #### Startup
-* Run Publisher: `go run -mod=vendor gomq/cmd/publisher/publisher.go`
-* Run Consumer: `go run -mod=vendor gomq/cmd/consumer/consumer.go`
+* Run Publisher: `go run -mod=vendor gomq/cmds/publisher/publisher.go`
+* Run Consumer: `go run -mod=vendor gomq/cmds/consumer/consumer.go`
 * Publish message:
 ```
 curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
@@ -31,13 +31,16 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 * `cmd/`: define commands
 * `config/`: define configuration
 * `dbs/`: init database connection, create index
-* `handlers/`: handle messages (store DB, call api,...)
-* `models/`: define orm models
+* `packages/`: define packages
+* `utils/`: common package
+
+##### Package Structure
+* `incoming/`: handle logic incoming messages (repo, model, handler)
+* `inrouting/`: handle logic in routing key (repo, model)
+* `outgoing/`: handle logic in routing key (repo, model, handler)
 * `queue/`: contains publisher and consumer to send and receive messages
-* `repositories/`: define repository to access data
 * `routers/`: define api url, request body, params
 * `services/`: wrapper message before publish
-* `utils/`: common package
 
 #### 📙 Libraries
 - [Echo Framework](https://echo.labstack.com/)
