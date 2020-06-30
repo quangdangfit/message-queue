@@ -1,8 +1,7 @@
-package repositories
+package outgoing
 
 import (
 	"gomq/dbs"
-	"gomq/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,10 +9,10 @@ import (
 )
 
 type OutMessageRepository interface {
-	GetSingleOutMessage(query bson.M) (*models.OutMessage, error)
-	GetOutMessages(query bson.M, limit int) (*[]models.OutMessage, error)
-	AddOutMessage(message *models.OutMessage) error
-	UpdateOutMessage(message *models.OutMessage) error
+	GetSingleOutMessage(query bson.M) (*OutMessage, error)
+	GetOutMessages(query bson.M, limit int) (*[]OutMessage, error)
+	AddOutMessage(message *OutMessage) error
+	UpdateOutMessage(message *OutMessage) error
 }
 
 type outMessageRepo struct{}
@@ -22,8 +21,8 @@ func NewOutMessageRepo() OutMessageRepository {
 	return &outMessageRepo{}
 }
 
-func (msg *outMessageRepo) GetSingleOutMessage(query bson.M) (*models.OutMessage, error) {
-	message := models.OutMessage{}
+func (msg *outMessageRepo) GetSingleOutMessage(query bson.M) (*OutMessage, error) {
+	message := OutMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionOutMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
@@ -31,8 +30,8 @@ func (msg *outMessageRepo) GetSingleOutMessage(query bson.M) (*models.OutMessage
 
 	return &message, nil
 }
-func (msg *outMessageRepo) GetOutMessages(query bson.M, limit int) (*[]models.OutMessage, error) {
-	message := []models.OutMessage{}
+func (msg *outMessageRepo) GetOutMessages(query bson.M, limit int) (*[]OutMessage, error) {
+	message := []OutMessage{}
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionOutMessage, query, "-_id", 1,
 		limit, &message)
 	if err != nil {
@@ -42,7 +41,7 @@ func (msg *outMessageRepo) GetOutMessages(query bson.M, limit int) (*[]models.Ou
 	return &message, nil
 }
 
-func (msg *outMessageRepo) AddOutMessage(message *models.OutMessage) error {
+func (msg *outMessageRepo) AddOutMessage(message *OutMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -54,7 +53,7 @@ func (msg *outMessageRepo) AddOutMessage(message *models.OutMessage) error {
 	return nil
 }
 
-func (msg *outMessageRepo) UpdateOutMessage(message *models.OutMessage) error {
+func (msg *outMessageRepo) UpdateOutMessage(message *OutMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}

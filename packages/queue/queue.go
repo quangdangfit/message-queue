@@ -3,7 +3,6 @@ package queue
 import (
 	"fmt"
 	"gomq/config"
-	"gomq/models"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -29,7 +28,7 @@ type MessageQueue interface {
 }
 
 type messageQueue struct {
-	config          *models.AMQPConfig
+	config          *AMQPConfig
 	connection      *amqp.Connection
 	channel         *amqp.Channel
 	errorChan       chan *amqp.Error

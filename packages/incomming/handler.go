@@ -1,4 +1,4 @@
-package handlers
+package incomming
 
 import (
 	"bytes"
@@ -6,8 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gomq/dbs"
-	"gomq/models"
-	"gomq/repositories"
+	"gomq/packages/inrouting"
 	"gomq/utils"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
@@ -21,27 +20,27 @@ const (
 )
 
 type InMessageHandler interface {
-	HandleMessage(message *models.InMessage, routingKey string) error
-	storeMessage(message *models.InMessage) (err error)
-	callAPI(message *models.InMessage) (*http.Response, error)
+	HandleMessage(message *InMessage, routingKey string) error
+	storeMessage(message *InMessage) (err error)
+	callAPI(message *InMessage) (*http.Response, error)
 }
 
 type inHandler struct {
-	repo repositories.InMessageRepository
+	repo InMessageRepository
 }
 
 func NewInMessageHandler() InMessageHandler {
 	r := inHandler{
-		repo: repositories.NewInMessageRepo(),
+		repo: NewInMessageRepo(),
 	}
 	return &r
 }
 
-func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) error {
+func (r *inHandler) HandleMessage(message *InMessage, routingKey string) error {
 
 	defer r.storeMessage(message)
 
-	routingRepo := repositories.NewRoutingKeyRepo()
+	routingRepo := inrouting.NewRoutingKeyRepo()
 	inRoutingKey, err := routingRepo.GetRoutingKey(routingKey)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
@@ -92,7 +91,7 @@ func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) 
 	return nil
 }
 
-func (r *inHandler) storeMessage(message *models.InMessage) (err error) {
+func (r *inHandler) storeMessage(message *InMessage) (err error) {
 	msg, err := r.repo.GetSingleInMessage(bson.M{"id": message.ID})
 	if msg != nil {
 		err = r.repo.UpdateInMessage(message)
@@ -114,7 +113,7 @@ func (r *inHandler) storeMessage(message *models.InMessage) (err error) {
 	return nil
 }
 
-func (r *inHandler) callAPI(message *models.InMessage) (*http.Response, error) {
+func (r *inHandler) callAPI(message *InMessage) (*http.Response, error) {
 	routingKey := message.RoutingKey
 
 	bytesPayload, _ := json.Marshal(message.Payload)
@@ -137,8 +136,8 @@ func (r *inHandler) callAPI(message *models.InMessage) (*http.Response, error) {
 	return res, nil
 }
 
-func (r *inHandler) getPreviousMessage(message models.InMessage, routingKey string) (
-	*models.InMessage, error) {
+func (r *inHandler) getPreviousMessage(message InMessage, routingKey string) (
+	*InMessage, error) {
 
 	query := bson.M{
 		"origin_model":     message.OriginModel,

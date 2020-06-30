@@ -1,8 +1,7 @@
-package repositories
+package incomming
 
 import (
 	"gomq/dbs"
-	"gomq/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,10 +9,10 @@ import (
 )
 
 type InMessageRepository interface {
-	GetSingleInMessage(query bson.M) (*models.InMessage, error)
-	GetInMessages(query bson.M, limit int) (*[]models.InMessage, error)
-	AddInMessage(message *models.InMessage) error
-	UpdateInMessage(message *models.InMessage) error
+	GetSingleInMessage(query bson.M) (*InMessage, error)
+	GetInMessages(query bson.M, limit int) (*[]InMessage, error)
+	AddInMessage(message *InMessage) error
+	UpdateInMessage(message *InMessage) error
 }
 
 type inMessageRepo struct{}
@@ -22,8 +21,8 @@ func NewInMessageRepo() InMessageRepository {
 	return &inMessageRepo{}
 }
 
-func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*models.InMessage, error) {
-	message := models.InMessage{}
+func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*InMessage, error) {
+	message := InMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
@@ -32,8 +31,8 @@ func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*models.InMessage, e
 	return &message, nil
 }
 
-func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]models.InMessage, error) {
-	message := []models.InMessage{}
+func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]InMessage, error) {
+	message := []InMessage{}
 
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
 		limit, &message)
@@ -44,7 +43,7 @@ func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]models.InMe
 	return &message, nil
 }
 
-func (msg *inMessageRepo) AddInMessage(message *models.InMessage) error {
+func (msg *inMessageRepo) AddInMessage(message *InMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -57,7 +56,7 @@ func (msg *inMessageRepo) AddInMessage(message *models.InMessage) error {
 	return nil
 }
 
-func (msg *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
+func (msg *inMessageRepo) UpdateInMessage(message *InMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}

@@ -1,4 +1,4 @@
-package models
+package queue
 
 type AMQPConfig struct {
 	AMQPUrl      string

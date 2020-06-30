@@ -1,28 +1,25 @@
-package handlers
+package outgoing
 
 import (
-	"gomq/models"
-	"gomq/repositories"
-
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type OutMessageHandler interface {
-	HandleMessage(message *models.OutMessage) (err error)
+	HandleMessage(message *OutMessage) (err error)
 }
 
 type outHandler struct {
-	repo repositories.OutMessageRepository
+	repo OutMessageRepository
 }
 
 func NewOutMessageHandler() OutMessageHandler {
 	return &outHandler{
-		repo: repositories.NewOutMessageRepo(),
+		repo: NewOutMessageRepo(),
 	}
 }
 
-func (s *outHandler) HandleMessage(message *models.OutMessage) (
+func (s *outHandler) HandleMessage(message *OutMessage) (
 	err error) {
 
 	msg, err := s.repo.GetSingleOutMessage(bson.M{"id": message.ID})
