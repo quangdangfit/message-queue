@@ -8,20 +8,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type OutMessageRepository interface {
-	GetSingleOutMessage(query bson.M) (*OutMessage, error)
-	GetOutMessages(query bson.M, limit int) (*[]OutMessage, error)
+type Repository interface {
+	GetSingleOutMessage(query map[string]interface{}) (*OutMessage, error)
+	GetOutMessages(query map[string]interface{}, limit int) (*[]OutMessage, error)
 	AddOutMessage(message *OutMessage) error
 	UpdateOutMessage(message *OutMessage) error
 }
 
-type outMessageRepo struct{}
+type outRepo struct{}
 
-func NewOutMessageRepo() OutMessageRepository {
-	return &outMessageRepo{}
+func NewOutMessageRepo() Repository {
+	return &outRepo{}
 }
 
-func (msg *outMessageRepo) GetSingleOutMessage(query bson.M) (*OutMessage, error) {
+func (o *outRepo) GetSingleOutMessage(query map[string]interface{}) (*OutMessage, error) {
 	message := OutMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionOutMessage, query, "-_id", &message)
 	if err != nil {
@@ -30,7 +30,7 @@ func (msg *outMessageRepo) GetSingleOutMessage(query bson.M) (*OutMessage, error
 
 	return &message, nil
 }
-func (msg *outMessageRepo) GetOutMessages(query bson.M, limit int) (*[]OutMessage, error) {
+func (o *outRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]OutMessage, error) {
 	message := []OutMessage{}
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionOutMessage, query, "-_id", 1,
 		limit, &message)
@@ -41,7 +41,7 @@ func (msg *outMessageRepo) GetOutMessages(query bson.M, limit int) (*[]OutMessag
 	return &message, nil
 }
 
-func (msg *outMessageRepo) AddOutMessage(message *OutMessage) error {
+func (o *outRepo) AddOutMessage(message *OutMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -53,7 +53,7 @@ func (msg *outMessageRepo) AddOutMessage(message *OutMessage) error {
 	return nil
 }
 
-func (msg *outMessageRepo) UpdateOutMessage(message *OutMessage) error {
+func (o *outRepo) UpdateOutMessage(message *OutMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}

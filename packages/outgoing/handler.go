@@ -5,26 +5,26 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type OutMessageHandler interface {
+type Handler interface {
 	HandleMessage(message *OutMessage) (err error)
 }
 
-type outHandler struct {
-	repo OutMessageRepository
+type handler struct {
+	repo Repository
 }
 
-func NewOutMessageHandler() OutMessageHandler {
-	return &outHandler{
+func NewHandler() Handler {
+	return &handler{
 		repo: NewOutMessageRepo(),
 	}
 }
 
-func (s *outHandler) HandleMessage(message *OutMessage) (
+func (h *handler) HandleMessage(message *OutMessage) (
 	err error) {
 
-	msg, err := s.repo.GetSingleOutMessage(bson.M{"id": message.ID})
+	msg, err := h.repo.GetSingleOutMessage(bson.M{"id": message.ID})
 	if msg != nil {
-		err = s.repo.UpdateOutMessage(message)
+		err = h.repo.UpdateOutMessage(message)
 		if err != nil {
 			logger.Errorf("[Handle OutMsg] Failed to update msg %s, %s", message.ID, err)
 			return err
@@ -34,7 +34,7 @@ func (s *outHandler) HandleMessage(message *OutMessage) (
 		return nil
 	}
 
-	err = s.repo.AddOutMessage(message)
+	err = h.repo.AddOutMessage(message)
 	if err != nil {
 		logger.Errorf("[Handle OutMsg] Failed to insert msg %s, %s", message.ID, err)
 		return err

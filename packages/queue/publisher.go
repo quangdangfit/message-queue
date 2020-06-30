@@ -100,7 +100,7 @@ func (pub *publisher) Publish(message *outgoing.OutMessage, reliable bool) (
 }
 
 func (pub *publisher) handle(message *outgoing.OutMessage) error {
-	outHandler := outgoing.NewOutMessageHandler()
+	outHandler := outgoing.NewHandler()
 	return outHandler.HandleMessage(message)
 }
 
