@@ -6,19 +6,19 @@ import (
 )
 
 type Repository interface {
-	GetRoutingKey(name string) (*RoutingKey, error)
+	GetRoutingKey(query map[string]interface{}) (*RoutingKey, error)
 	GetPreviousRoutingKey(srcRouting RoutingKey) (*RoutingKey, error)
 }
 
 type repo struct{}
 
-func NewRoutingKeyRepo() Repository {
+func NewRepository() Repository {
 	return &repo{}
 }
 
-func (r *repo) GetRoutingKey(name string) (*RoutingKey, error) {
+func (r *repo) GetRoutingKey(query map[string]interface{}) (*RoutingKey, error) {
 	var routingKey RoutingKey
-	query := bson.M{"name": name, "active": true}
+	query["active"] = true
 	err := dbs.Database.FindOne(dbs.CollectionRoutingKey, query, "",
 		&routingKey)
 	if err != nil {
@@ -30,17 +30,9 @@ func (r *repo) GetRoutingKey(name string) (*RoutingKey, error) {
 func (r *repo) GetPreviousRoutingKey(srcRouting RoutingKey) (
 	*RoutingKey, error) {
 
-	var routingKey RoutingKey
 	query := bson.M{
-		"group":  srcRouting.Group,
-		"active": true,
-		"value":  srcRouting.Value - 1,
+		"group": srcRouting.Group,
+		"value": srcRouting.Value - 1,
 	}
-
-	err := dbs.Database.FindOne(dbs.CollectionRoutingKey, query, "",
-		&routingKey)
-	if err != nil {
-		return nil, err
-	}
-	return &routingKey, nil
+	return r.GetRoutingKey(query)
 }

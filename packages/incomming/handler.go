@@ -26,22 +26,24 @@ type InMessageHandler interface {
 }
 
 type inHandler struct {
-	repo InMessageRepository
+	msgRepo     Repository
+	routingRepo inrouting.Repository
 }
 
 func NewInMessageHandler() InMessageHandler {
 	r := inHandler{
-		repo: NewInMessageRepo(),
+		msgRepo:     NewInMessageRepo(),
+		routingRepo: inrouting.NewRepository(),
 	}
 	return &r
 }
 
-func (r *inHandler) HandleMessage(message *InMessage, routingKey string) error {
+func (i *inHandler) HandleMessage(message *InMessage, routingKey string) error {
 
-	defer r.storeMessage(message)
+	defer i.storeMessage(message)
 
-	routingRepo := inrouting.NewRoutingKeyRepo()
-	inRoutingKey, err := routingRepo.GetRoutingKey(routingKey)
+	query := bson.M{"name": routingKey}
+	inRoutingKey, err := i.routingRepo.GetRoutingKey(query)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseError(err))
@@ -50,9 +52,9 @@ func (r *inHandler) HandleMessage(message *InMessage, routingKey string) error {
 	}
 	message.RoutingKey = *inRoutingKey
 
-	prevRoutingKey, _ := routingRepo.GetPreviousRoutingKey(message.RoutingKey)
+	prevRoutingKey, _ := i.routingRepo.GetPreviousRoutingKey(message.RoutingKey)
 	if prevRoutingKey != nil {
-		prevMsg, _ := r.getPreviousMessage(*message, prevRoutingKey.Name)
+		prevMsg, _ := i.getPreviousMessage(*message, prevRoutingKey.Name)
 
 		if prevMsg == nil || (prevMsg.Status != dbs.InMessageStatusSuccess &&
 			prevMsg.Status != dbs.InMessageStatusCanceled) {
@@ -64,7 +66,7 @@ func (r *inHandler) HandleMessage(message *InMessage, routingKey string) error {
 		}
 	}
 
-	res, err := r.callAPI(message)
+	res, err := i.callAPI(message)
 	if err != nil {
 		message.Status = dbs.InMessageStatusWaitRetry
 		message.Logs = append(message.Logs, utils.ParseError(err))
@@ -91,10 +93,10 @@ func (r *inHandler) HandleMessage(message *InMessage, routingKey string) error {
 	return nil
 }
 
-func (r *inHandler) storeMessage(message *InMessage) (err error) {
-	msg, err := r.repo.GetSingleInMessage(bson.M{"id": message.ID})
+func (i *inHandler) storeMessage(message *InMessage) (err error) {
+	msg, err := i.msgRepo.GetSingleInMessage(bson.M{"id": message.ID})
 	if msg != nil {
-		err = r.repo.UpdateInMessage(message)
+		err = i.msgRepo.UpdateInMessage(message)
 		if err != nil {
 			logger.Errorf("[Handle InMsg] Failed to update msg %s, %s", message.ID, err)
 			return err
@@ -104,7 +106,7 @@ func (r *inHandler) storeMessage(message *InMessage) (err error) {
 		return nil
 	}
 
-	err = r.repo.AddInMessage(message)
+	err = i.msgRepo.AddInMessage(message)
 	if err != nil {
 		logger.Errorf("[Handle InMsg] Failed to insert msg %s, %s", message.ID, err)
 		return err
@@ -113,7 +115,7 @@ func (r *inHandler) storeMessage(message *InMessage) (err error) {
 	return nil
 }
 
-func (r *inHandler) callAPI(message *InMessage) (*http.Response, error) {
+func (i *inHandler) callAPI(message *InMessage) (*http.Response, error) {
 	routingKey := message.RoutingKey
 
 	bytesPayload, _ := json.Marshal(message.Payload)
@@ -136,7 +138,7 @@ func (r *inHandler) callAPI(message *InMessage) (*http.Response, error) {
 	return res, nil
 }
 
-func (r *inHandler) getPreviousMessage(message InMessage, routingKey string) (
+func (i *inHandler) getPreviousMessage(message InMessage, routingKey string) (
 	*InMessage, error) {
 
 	query := bson.M{
@@ -144,7 +146,7 @@ func (r *inHandler) getPreviousMessage(message InMessage, routingKey string) (
 		"origin_code":      message.OriginCode,
 		"routing_key.name": routingKey,
 	}
-	prevMsg, err := r.repo.GetSingleInMessage(query)
+	prevMsg, err := i.msgRepo.GetSingleInMessage(query)
 
 	if err != nil {
 		return nil, err

@@ -8,20 +8,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type InMessageRepository interface {
+type Repository interface {
 	GetSingleInMessage(query bson.M) (*InMessage, error)
 	GetInMessages(query bson.M, limit int) (*[]InMessage, error)
 	AddInMessage(message *InMessage) error
 	UpdateInMessage(message *InMessage) error
 }
 
-type inMessageRepo struct{}
+type inRepo struct{}
 
-func NewInMessageRepo() InMessageRepository {
-	return &inMessageRepo{}
+func NewInMessageRepo() Repository {
+	return &inRepo{}
 }
 
-func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*InMessage, error) {
+func (msg *inRepo) GetSingleInMessage(query bson.M) (*InMessage, error) {
 	message := InMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
@@ -31,7 +31,7 @@ func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*InMessage, error) {
 	return &message, nil
 }
 
-func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]InMessage, error) {
+func (msg *inRepo) GetInMessages(query bson.M, limit int) (*[]InMessage, error) {
 	message := []InMessage{}
 
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
@@ -43,7 +43,7 @@ func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]InMessage, 
 	return &message, nil
 }
 
-func (msg *inMessageRepo) AddInMessage(message *InMessage) error {
+func (msg *inRepo) AddInMessage(message *InMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -56,7 +56,7 @@ func (msg *inMessageRepo) AddInMessage(message *InMessage) error {
 	return nil
 }
 
-func (msg *inMessageRepo) UpdateInMessage(message *InMessage) error {
+func (msg *inRepo) UpdateInMessage(message *InMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}
