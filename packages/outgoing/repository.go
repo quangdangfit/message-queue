@@ -21,7 +21,7 @@ func NewOutMessageRepo() Repository {
 	return &outRepo{}
 }
 
-func (o *outRepo) GetSingleOutMessage(query map[string]interface{}) (*OutMessage, error) {
+func (repo *outRepo) GetSingleOutMessage(query map[string]interface{}) (*OutMessage, error) {
 	message := OutMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionOutMessage, query, "-_id", &message)
 	if err != nil {
@@ -30,7 +30,7 @@ func (o *outRepo) GetSingleOutMessage(query map[string]interface{}) (*OutMessage
 
 	return &message, nil
 }
-func (o *outRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]OutMessage, error) {
+func (repo *outRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]OutMessage, error) {
 	message := []OutMessage{}
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionOutMessage, query, "-_id", 1,
 		limit, &message)
@@ -41,7 +41,7 @@ func (o *outRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]Ou
 	return &message, nil
 }
 
-func (o *outRepo) AddOutMessage(message *OutMessage) error {
+func (repo *outRepo) AddOutMessage(message *OutMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -53,7 +53,7 @@ func (o *outRepo) AddOutMessage(message *OutMessage) error {
 	return nil
 }
 
-func (o *outRepo) UpdateOutMessage(message *OutMessage) error {
+func (repo *outRepo) UpdateOutMessage(message *OutMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}

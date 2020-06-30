@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"gomq/config"
-	"gomq/packages/incomming"
+	"gomq/packages/incoming"
 	"runtime"
 	"sync/atomic"
 	"time"
@@ -22,7 +22,7 @@ type Consumer interface {
 	MessageQueue
 	RunConsumer(handler func([]byte) bool)
 	getHeaderKey(msg amqp.Delivery, key string) string
-	parseMessageFromDelivery(msg amqp.Delivery) (*incomming.InMessage, error)
+	parseMessageFromDelivery(msg amqp.Delivery) (*incoming.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
 	subscribe() (<-chan amqp.Delivery, error)
 	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
@@ -94,11 +94,11 @@ func (cons *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
 }
 
 func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
-	*incomming.InMessage, error) {
+	*incoming.InMessage, error) {
 
 	var payload interface{}
 	json.Unmarshal(msg.Body, &payload)
-	message := incomming.InMessage{
+	message := incoming.InMessage{
 		Payload:     payload,
 		OriginCode:  msg.Headers["origin_code"].(string),
 		OriginModel: msg.Headers["origin_model"].(string),
@@ -217,7 +217,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 
 func (cons *consumer) handle(msg amqp.Delivery) {
 	message, _ := cons.parseMessageFromDelivery(msg)
-	receiver := incomming.NewInMessageHandler()
+	receiver := incoming.NewHandler()
 	err := receiver.HandleMessage(message, msg.RoutingKey)
 	if err != nil {
 		logger.Errorf("Failed to handle message, routing_key %s, "+

@@ -2,7 +2,7 @@ package main
 
 import (
 	"gomq/dbs"
-	"gomq/packages/incomming"
+	"gomq/packages/incoming"
 	"gopkg.in/mgo.v2/bson"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
@@ -14,7 +14,7 @@ const (
 )
 
 func main() {
-	repo := incomming.NewInMessageRepo()
+	repo := incoming.NewInMessageRepo()
 
 	query := bson.M{"status": dbs.InMessageStatusWaitPrevMsg}
 	messages, _ := repo.GetInMessages(query, RetryPrevInMessageLimit)
@@ -23,7 +23,7 @@ func main() {
 		return
 	}
 
-	inHandler := incomming.NewInMessageHandler()
+	inHandler := incoming.NewHandler()
 
 	logger.Infof("[Retry Prev Message] Found %d wait_prev messages!", len(*messages))
 	for _, msg := range *messages {

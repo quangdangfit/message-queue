@@ -1,4 +1,4 @@
-package incomming
+package incoming
 
 import (
 	"gomq/dbs"
@@ -21,7 +21,7 @@ func NewInMessageRepo() Repository {
 	return &inRepo{}
 }
 
-func (msg *inRepo) GetSingleInMessage(query map[string]interface{}) (*InMessage, error) {
+func (repo *inRepo) GetSingleInMessage(query map[string]interface{}) (*InMessage, error) {
 	message := InMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
@@ -31,7 +31,7 @@ func (msg *inRepo) GetSingleInMessage(query map[string]interface{}) (*InMessage,
 	return &message, nil
 }
 
-func (msg *inRepo) GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error) {
+func (repo *inRepo) GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error) {
 	message := []InMessage{}
 
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
@@ -43,7 +43,7 @@ func (msg *inRepo) GetInMessages(query map[string]interface{}, limit int) (*[]In
 	return &message, nil
 }
 
-func (msg *inRepo) AddInMessage(message *InMessage) error {
+func (repo *inRepo) AddInMessage(message *InMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -56,7 +56,7 @@ func (msg *inRepo) AddInMessage(message *InMessage) error {
 	return nil
 }
 
-func (msg *inRepo) UpdateInMessage(message *InMessage) error {
+func (repo *inRepo) UpdateInMessage(message *InMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}
