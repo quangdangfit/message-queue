@@ -14,7 +14,7 @@ const (
 )
 
 func main() {
-	repo := incoming.NewInMessageRepo()
+	repo := incoming.NewRepository()
 
 	query := bson.M{"status": dbs.InMessageStatusWaitPrevMsg}
 	messages, _ := repo.GetInMessages(query, RetryPrevInMessageLimit)

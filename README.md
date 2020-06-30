@@ -28,7 +28,7 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 
 
 #### Structure
-* `cmd/`: define commands
+* `cmds/`: define commands
 * `config/`: define configuration
 * `dbs/`: init database connection, create index
 * `packages/`: define packages

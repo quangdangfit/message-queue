@@ -11,7 +11,7 @@ import (
 const ResendOutMessageLimit = 100
 
 func main() {
-	repo := outgoing.NewOutMessageRepo()
+	repo := outgoing.NewRepository()
 
 	query := bson.M{"status": dbs.OutMessageStatusWait}
 	messages, _ := repo.GetOutMessages(query, ResendOutMessageLimit)
