@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	inHandler := handlers.NewInMessageHandler(false)
+	inHandler := handlers.NewInMessageHandler()
 
 	logger.Infof("[Retry Message] Found %d wait_retry messages!", len(*messages))
 	for _, msg := range *messages {
