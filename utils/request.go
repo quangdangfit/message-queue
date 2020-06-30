@@ -1,4 +1,4 @@
-package models
+package utils
 
 type MessageRequest struct {
 	RoutingKey  string      `json:"routing_key,omitempty" bson:"routing_key,omitempty" validate:"required"`

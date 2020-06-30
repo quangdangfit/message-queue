@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gomq/queue"
+	"gomq/packages/queue"
 )
 
 func main() {

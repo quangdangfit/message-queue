@@ -2,8 +2,8 @@ package services
 
 import (
 	"gomq/dbs"
-	"gomq/models"
-	"gomq/queue"
+	"gomq/packages/outgoing"
+	"gomq/packages/queue"
 	"gomq/utils"
 	"net/http"
 
@@ -15,8 +15,8 @@ import (
 
 type Sender interface {
 	PublishMessage(c echo.Context) (err error)
-	parseMessage(c echo.Context, msgRequest models.MessageRequest) (
-		*models.OutMessage, error)
+	parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
+		*outgoing.OutMessage, error)
 	getAPIKey(c echo.Context) string
 }
 
@@ -30,7 +30,7 @@ func NewSender() Sender {
 }
 
 func (s *sender) PublishMessage(c echo.Context) (err error) {
-	var req models.MessageRequest
+	var req utils.MessageRequest
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
@@ -57,9 +57,9 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
 }
 
-func (s *sender) parseMessage(c echo.Context, msgRequest models.MessageRequest) (
-	*models.OutMessage, error) {
-	message := models.OutMessage{}
+func (s *sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
+	*outgoing.OutMessage, error) {
+	message := outgoing.OutMessage{}
 	err := copier.Copy(&message, &msgRequest)
 
 	if err != nil {

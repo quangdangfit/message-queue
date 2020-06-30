@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"gomq/config"
 	"gomq/dbs"
-	"gomq/handlers"
-	"gomq/models"
+	"gomq/packages/outgoing"
 	"gomq/utils"
 
 	"github.com/streadway/amqp"
@@ -14,9 +13,9 @@ import (
 
 type Publisher interface {
 	MessageQueue
-	Publish(message *models.OutMessage, reliable bool) error
-	handle(message *models.OutMessage) error
-	confirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool
+	Publish(message *outgoing.OutMessage, reliable bool) error
+	handle(message *outgoing.OutMessage) error
+	confirmOne(message *outgoing.OutMessage, confirms <-chan amqp.Confirmation) bool
 }
 
 type publisher struct {
@@ -26,7 +25,7 @@ type publisher struct {
 func NewPublisher() Publisher {
 	var pub publisher
 
-	pub.config = &models.AMQPConfig{
+	pub.config = &AMQPConfig{
 		AMQPUrl:      config.Config.AMQP.URL,
 		ExchangeName: config.Config.AMQP.ExchangeName,
 		ExchangeType: config.Config.AMQP.ExchangeType,
@@ -45,7 +44,7 @@ func NewPublisher() Publisher {
 	return &pub
 }
 
-func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
+func (pub *publisher) Publish(message *outgoing.OutMessage, reliable bool) (
 	err error) {
 
 	// New channel and close after publish
@@ -100,12 +99,12 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	return nil
 }
 
-func (pub *publisher) handle(message *models.OutMessage) error {
-	outHandler := handlers.NewOutMessageHandler()
+func (pub *publisher) handle(message *outgoing.OutMessage) error {
+	outHandler := outgoing.NewHandler()
 	return outHandler.HandleMessage(message)
 }
 
-func (pub *publisher) confirmOne(message *models.OutMessage,
+func (pub *publisher) confirmOne(message *outgoing.OutMessage,
 	confirms <-chan amqp.Confirmation) bool {
 
 	confirmed := <-confirms

@@ -1,4 +1,4 @@
-package models
+package inrouting
 
 type RoutingKey struct {
 	Name      string `json:"name,omitempty" bson:"name,omitempty"`

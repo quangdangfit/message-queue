@@ -1,29 +1,28 @@
-package repositories
+package incoming
 
 import (
 	"gomq/dbs"
-	"gomq/models"
 	"time"
 
 	"github.com/google/uuid"
 	"gopkg.in/mgo.v2/bson"
 )
 
-type InMessageRepository interface {
-	GetSingleInMessage(query bson.M) (*models.InMessage, error)
-	GetInMessages(query bson.M, limit int) (*[]models.InMessage, error)
-	AddInMessage(message *models.InMessage) error
-	UpdateInMessage(message *models.InMessage) error
+type Repository interface {
+	GetSingleInMessage(query map[string]interface{}) (*InMessage, error)
+	GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error)
+	AddInMessage(message *InMessage) error
+	UpdateInMessage(message *InMessage) error
 }
 
-type inMessageRepo struct{}
+type inRepo struct{}
 
-func NewInMessageRepo() InMessageRepository {
-	return &inMessageRepo{}
+func NewInMessageRepo() Repository {
+	return &inRepo{}
 }
 
-func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*models.InMessage, error) {
-	message := models.InMessage{}
+func (repo *inRepo) GetSingleInMessage(query map[string]interface{}) (*InMessage, error) {
+	message := InMessage{}
 	err := dbs.Database.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
@@ -32,8 +31,8 @@ func (msg *inMessageRepo) GetSingleInMessage(query bson.M) (*models.InMessage, e
 	return &message, nil
 }
 
-func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]models.InMessage, error) {
-	message := []models.InMessage{}
+func (repo *inRepo) GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error) {
+	message := []InMessage{}
 
 	_, err := dbs.Database.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
 		limit, &message)
@@ -44,7 +43,7 @@ func (msg *inMessageRepo) GetInMessages(query bson.M, limit int) (*[]models.InMe
 	return &message, nil
 }
 
-func (msg *inMessageRepo) AddInMessage(message *models.InMessage) error {
+func (repo *inRepo) AddInMessage(message *InMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -57,7 +56,7 @@ func (msg *inMessageRepo) AddInMessage(message *models.InMessage) error {
 	return nil
 }
 
-func (msg *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
+func (repo *inRepo) UpdateInMessage(message *InMessage) error {
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}

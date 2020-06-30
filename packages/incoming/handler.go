@@ -1,4 +1,4 @@
-package handlers
+package incoming
 
 import (
 	"bytes"
@@ -6,8 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gomq/dbs"
-	"gomq/models"
-	"gomq/repositories"
+	"gomq/packages/inrouting"
 	"gomq/utils"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
@@ -20,29 +19,31 @@ const (
 	RequestTimeout = 60
 )
 
-type InMessageHandler interface {
-	HandleMessage(message *models.InMessage, routingKey string) error
-	storeMessage(message *models.InMessage) (err error)
-	callAPI(message *models.InMessage) (*http.Response, error)
+type Handler interface {
+	HandleMessage(message *InMessage, routingKey string) error
+	storeMessage(message *InMessage) (err error)
+	callAPI(message *InMessage) (*http.Response, error)
 }
 
-type inHandler struct {
-	repo repositories.InMessageRepository
+type handler struct {
+	msgRepo     Repository
+	routingRepo inrouting.Repository
 }
 
-func NewInMessageHandler() InMessageHandler {
-	r := inHandler{
-		repo: repositories.NewInMessageRepo(),
+func NewHandler() Handler {
+	r := handler{
+		msgRepo:     NewInMessageRepo(),
+		routingRepo: inrouting.NewRepository(),
 	}
 	return &r
 }
 
-func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) error {
+func (h *handler) HandleMessage(message *InMessage, routingKey string) error {
 
-	defer r.storeMessage(message)
+	defer h.storeMessage(message)
 
-	routingRepo := repositories.NewRoutingKeyRepo()
-	inRoutingKey, err := routingRepo.GetRoutingKey(routingKey)
+	query := bson.M{"name": routingKey}
+	inRoutingKey, err := h.routingRepo.GetRoutingKey(query)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseError(err))
@@ -51,9 +52,9 @@ func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) 
 	}
 	message.RoutingKey = *inRoutingKey
 
-	prevRoutingKey, _ := routingRepo.GetPreviousRoutingKey(message.RoutingKey)
+	prevRoutingKey, _ := h.routingRepo.GetPreviousRoutingKey(message.RoutingKey)
 	if prevRoutingKey != nil {
-		prevMsg, _ := r.getPreviousMessage(*message, prevRoutingKey.Name)
+		prevMsg, _ := h.getPreviousMessage(*message, prevRoutingKey.Name)
 
 		if prevMsg == nil || (prevMsg.Status != dbs.InMessageStatusSuccess &&
 			prevMsg.Status != dbs.InMessageStatusCanceled) {
@@ -65,7 +66,7 @@ func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) 
 		}
 	}
 
-	res, err := r.callAPI(message)
+	res, err := h.callAPI(message)
 	if err != nil {
 		message.Status = dbs.InMessageStatusWaitRetry
 		message.Logs = append(message.Logs, utils.ParseError(err))
@@ -92,10 +93,10 @@ func (r *inHandler) HandleMessage(message *models.InMessage, routingKey string) 
 	return nil
 }
 
-func (r *inHandler) storeMessage(message *models.InMessage) (err error) {
-	msg, err := r.repo.GetSingleInMessage(bson.M{"id": message.ID})
+func (h *handler) storeMessage(message *InMessage) (err error) {
+	msg, err := h.msgRepo.GetSingleInMessage(bson.M{"id": message.ID})
 	if msg != nil {
-		err = r.repo.UpdateInMessage(message)
+		err = h.msgRepo.UpdateInMessage(message)
 		if err != nil {
 			logger.Errorf("[Handle InMsg] Failed to update msg %s, %s", message.ID, err)
 			return err
@@ -105,7 +106,7 @@ func (r *inHandler) storeMessage(message *models.InMessage) (err error) {
 		return nil
 	}
 
-	err = r.repo.AddInMessage(message)
+	err = h.msgRepo.AddInMessage(message)
 	if err != nil {
 		logger.Errorf("[Handle InMsg] Failed to insert msg %s, %s", message.ID, err)
 		return err
@@ -114,7 +115,7 @@ func (r *inHandler) storeMessage(message *models.InMessage) (err error) {
 	return nil
 }
 
-func (r *inHandler) callAPI(message *models.InMessage) (*http.Response, error) {
+func (h *handler) callAPI(message *InMessage) (*http.Response, error) {
 	routingKey := message.RoutingKey
 
 	bytesPayload, _ := json.Marshal(message.Payload)
@@ -137,19 +138,13 @@ func (r *inHandler) callAPI(message *models.InMessage) (*http.Response, error) {
 	return res, nil
 }
 
-func (r *inHandler) getPreviousMessage(message models.InMessage, routingKey string) (
-	*models.InMessage, error) {
+func (h *handler) getPreviousMessage(message InMessage, routingKey string) (
+	*InMessage, error) {
 
 	query := bson.M{
 		"origin_model":     message.OriginModel,
 		"origin_code":      message.OriginCode,
 		"routing_key.name": routingKey,
 	}
-	prevMsg, err := r.repo.GetSingleInMessage(query)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return prevMsg, nil
+	return h.msgRepo.GetSingleInMessage(query)
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gomq/routers"
+	"gomq/packages/routers"
 	"net/http"
 	"os"
 	"os/signal"

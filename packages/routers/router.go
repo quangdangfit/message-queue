@@ -1,9 +1,8 @@
 package routers
 
 import (
-	"gomq/services"
-
 	"github.com/labstack/echo"
+	"gomq/packages/services"
 )
 
 func Message(e *echo.Echo) {

@@ -1,18 +1,17 @@
 package main
 
 import (
-	"gomq/dbs"
-	"gomq/queue"
-	"gomq/repositories"
-
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"gomq/dbs"
+	"gomq/packages/outgoing"
+	"gomq/packages/queue"
 	"gopkg.in/mgo.v2/bson"
 )
 
 const ResendOutMessageLimit = 100
 
 func main() {
-	repo := repositories.NewOutMessageRepo()
+	repo := outgoing.NewOutMessageRepo()
 
 	query := bson.M{"status": dbs.OutMessageStatusWait}
 	messages, _ := repo.GetOutMessages(query, ResendOutMessageLimit)
