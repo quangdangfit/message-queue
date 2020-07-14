@@ -1,8 +1,9 @@
 package incoming
 
 import (
-	"gomq/packages/inrouting"
 	"time"
+
+	"gomq/packages/inrouting"
 )
 
 type InMessage struct {

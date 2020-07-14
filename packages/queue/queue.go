@@ -2,11 +2,12 @@ package queue
 
 import (
 	"fmt"
-	"gomq/config"
 	"time"
 
 	"github.com/streadway/amqp"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+
+	"gomq/config"
 )
 
 const (

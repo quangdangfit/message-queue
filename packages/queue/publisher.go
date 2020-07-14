@@ -2,13 +2,14 @@ package queue
 
 import (
 	"encoding/json"
+
+	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
+
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/packages/outgoing"
 	"gomq/utils"
-
-	"github.com/streadway/amqp"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 type Publisher interface {

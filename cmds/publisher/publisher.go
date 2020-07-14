@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"gomq/packages/routers"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +10,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+
+	"gomq/packages/routers"
 )
 
 func main() {

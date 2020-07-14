@@ -1,11 +1,11 @@
 package main
 
 import (
-	"gomq/dbs"
-	"gomq/packages/incoming"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"gomq/dbs"
+	"gomq/packages/incoming"
 )
 
 const (

@@ -1,11 +1,11 @@
 package dbs
 
 import (
-	"gomq/config"
-
 	db "gitlab.com/quangdangfit/gocommon/database"
 	"gitlab.com/quangdangfit/gocommon/database/mongo"
 	"gopkg.in/mgo.v2"
+
+	"gomq/config"
 )
 
 var Database mongo.MongoDB
