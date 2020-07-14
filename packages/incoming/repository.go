@@ -1,11 +1,13 @@
 package incoming
 
 import (
-	"gomq/dbs"
 	"time"
 
 	"github.com/google/uuid"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
 	"gopkg.in/mgo.v2/bson"
+
+	"gomq/dbs"
 )
 
 type Repository interface {
@@ -13,6 +15,7 @@ type Repository interface {
 	GetInMessages(query map[string]interface{}, limit int) (*[]InMessage, error)
 	AddInMessage(message *InMessage) error
 	UpdateInMessage(message *InMessage) error
+	UpsertInMessage(message *InMessage) error
 }
 
 type inRepo struct{}
@@ -70,5 +73,27 @@ func (repo *inRepo) UpdateInMessage(message *InMessage) error {
 		return err
 	}
 
+	return nil
+}
+
+func (repo *inRepo) UpsertInMessage(message *InMessage) error {
+	msg, err := repo.GetSingleInMessage(bson.M{"id": message.ID})
+	if msg != nil {
+		err = repo.UpdateInMessage(message)
+		if err != nil {
+			logger.Errorf("Failed to update msg %s, %s", message.ID, err)
+			return err
+		}
+
+		logger.Infof("Updated msg %s", message.ID)
+		return nil
+	}
+
+	err = repo.AddInMessage(message)
+	if err != nil {
+		logger.Errorf("Failed to insert msg %s, %s", message.ID, err)
+		return err
+	}
+	logger.Infof("Inserted msg %s", message.ID)
 	return nil
 }

@@ -6,23 +6,28 @@ import (
 )
 
 type objLogs struct {
-	Status   string `json:"status,omitempty" bson:"status,omitempty"`
-	HttpCode int    `json:"http_code,omitempty" bson:"http_code,omitempty"`
-	Code     string `json:"code,omitempty" bson:"code,omitempty"`
-	Message  string `json:"message,omitempty" bson:"message,omitempty"`
+	Status     string      `json:"status,omitempty" bson:"status,omitempty"`
+	StatusCode int         `json:"status_code,omitempty" bson:"status_code,omitempty"`
+	Body       interface{} `json:"body,omitempty" bson:"body,omitempty"`
+	Error      string      `json:"error,omitempty" bson:"error,omitempty"`
 }
 
-func ParseError(err interface{}) *objLogs {
-	errObj := objLogs{}
+func ParseLog(err interface{}) *objLogs {
+	logObject := objLogs{}
 	switch v := err.(type) {
-	case http.Response:
-		json.NewDecoder(v.Body).Decode(&errObj)
-		break
+	case *http.Response:
+		var body interface{}
+		json.NewDecoder(v.Body).Decode(&body)
+
+		logObject.Status = v.Status
+		logObject.StatusCode = v.StatusCode
+		logObject.Body = body
+		//break
 	case error:
-		errObj.Message = v.Error()
+		logObject.Error = v.Error()
 	case string:
-		errObj.Message = v
+		logObject.Error = v
 	}
 
-	return &errObj
+	return &logObject
 }

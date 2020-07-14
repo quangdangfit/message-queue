@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gomq/dbs"
-	"gomq/packages/inrouting"
-	"gomq/utils"
-	"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"time"
 
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"gopkg.in/mgo.v2/bson"
+
+	"gomq/dbs"
+	"gomq/packages/inrouting"
+	"gomq/utils"
 )
 
 const (
@@ -46,7 +47,7 @@ func (h *handler) HandleMessage(message *InMessage, routingKey string) error {
 	inRoutingKey, err := h.routingRepo.GetRoutingKey(query)
 	if err != nil {
 		message.Status = dbs.InMessageStatusInvalid
-		message.Logs = append(message.Logs, utils.ParseError(err))
+		message.Logs = append(message.Logs, utils.ParseLog(err))
 		logger.Error("Cannot find routing key ", err)
 		return err
 	}
@@ -69,50 +70,32 @@ func (h *handler) HandleMessage(message *InMessage, routingKey string) error {
 	res, err := h.callAPI(message)
 	if err != nil {
 		message.Status = dbs.InMessageStatusWaitRetry
-		message.Logs = append(message.Logs, utils.ParseError(err))
+		message.Logs = append(message.Logs, utils.ParseLog(err))
 		return err
 	}
 
 	if res.StatusCode == http.StatusNotFound || res.StatusCode == http.StatusUnauthorized {
 		message.Status = dbs.InMessageStatusWaitRetry
 		err = errors.New(fmt.Sprintf("failed to call API %s", res.Status))
-		message.Logs = append(message.Logs, utils.ParseError(res.Status))
+		message.Logs = append(message.Logs, utils.ParseLog(res))
 		return err
 	}
 
 	if res.StatusCode != http.StatusOK {
 		message.Status = dbs.InMessageStatusWaitRetry
 		err = errors.New("failed to call API")
-		message.Logs = append(message.Logs, utils.ParseError(res))
+		message.Logs = append(message.Logs, utils.ParseLog(res))
 		return err
 	}
 
 	message.Status = dbs.InMessageStatusSuccess
-	message.Logs = append(message.Logs, utils.ParseError(res))
+	message.Logs = append(message.Logs, utils.ParseLog(res))
 
 	return nil
 }
 
 func (h *handler) storeMessage(message *InMessage) (err error) {
-	msg, err := h.msgRepo.GetSingleInMessage(bson.M{"id": message.ID})
-	if msg != nil {
-		err = h.msgRepo.UpdateInMessage(message)
-		if err != nil {
-			logger.Errorf("[Handle InMsg] Failed to update msg %s, %s", message.ID, err)
-			return err
-		}
-
-		logger.Infof("[Handle InMsg] Updated msg %s", message.ID)
-		return nil
-	}
-
-	err = h.msgRepo.AddInMessage(message)
-	if err != nil {
-		logger.Errorf("[Handle InMsg] Failed to insert msg %s, %s", message.ID, err)
-		return err
-	}
-	logger.Infof("[Handle InMsg] Inserted msg %s", message.ID)
-	return nil
+	return h.msgRepo.UpsertInMessage(message)
 }
 
 func (h *handler) callAPI(message *InMessage) (*http.Response, error) {

@@ -84,7 +84,7 @@ func (pub *publisher) Publish(message *outgoing.OutMessage, reliable bool) (
 		},
 	); err != nil {
 		message.Status = dbs.OutMessageStatusFailed
-		message.Logs = append(message.Logs, utils.ParseError(err))
+		message.Logs = append(message.Logs, utils.ParseLog(err))
 		logger.Error("Failed to publish message ", err)
 		return err
 	}
