@@ -2,10 +2,11 @@ package main
 
 import (
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"gopkg.in/mgo.v2/bson"
+
 	"gomq/dbs"
 	"gomq/packages/outgoing"
 	"gomq/packages/queue"
-	"gopkg.in/mgo.v2/bson"
 )
 
 const ResendOutMessageLimit = 100

@@ -3,8 +3,6 @@ package queue
 import (
 	"encoding/json"
 	"errors"
-	"gomq/config"
-	"gomq/packages/incoming"
 	"runtime"
 	"sync/atomic"
 	"time"
@@ -12,6 +10,9 @@ import (
 	"github.com/manucorporat/try"
 	"github.com/streadway/amqp"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
+
+	"gomq/config"
+	"gomq/packages/incoming"
 )
 
 const (
@@ -224,4 +225,7 @@ func (cons *consumer) handle(msg amqp.Delivery) {
 			"model %s, code %s, error: %s", message.RoutingKey.Name,
 			message.OriginModel, message.OriginCode, err)
 	}
+
+	logger.Infof("Success, routing_key %s, model %s, code %s", message.RoutingKey.Name,
+		message.OriginModel, message.OriginCode)
 }

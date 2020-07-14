@@ -2,13 +2,14 @@ package queue
 
 import (
 	"encoding/json"
+
+	"github.com/streadway/amqp"
+	"gitlab.com/quangdangfit/gocommon/utils/logger"
+
 	"gomq/config"
 	"gomq/dbs"
 	"gomq/packages/outgoing"
 	"gomq/utils"
-
-	"github.com/streadway/amqp"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
 )
 
 type Publisher interface {
@@ -84,7 +85,7 @@ func (pub *publisher) Publish(message *outgoing.OutMessage, reliable bool) (
 		},
 	); err != nil {
 		message.Status = dbs.OutMessageStatusFailed
-		message.Logs = append(message.Logs, utils.ParseError(err))
+		message.Logs = append(message.Logs, utils.ParseLog(err))
 		logger.Error("Failed to publish message ", err)
 		return err
 	}

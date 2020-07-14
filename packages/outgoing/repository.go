@@ -1,11 +1,12 @@
 package outgoing
 
 import (
-	"gomq/dbs"
 	"time"
 
 	"github.com/google/uuid"
 	"gopkg.in/mgo.v2/bson"
+
+	"gomq/dbs"
 )
 
 type Repository interface {
