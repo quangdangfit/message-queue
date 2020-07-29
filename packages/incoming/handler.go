@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 	"gomq/packages/inrouting"
 	"gomq/utils"
 )

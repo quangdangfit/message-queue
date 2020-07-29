@@ -4,24 +4,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/quangdangfit/gocommon/database"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 	"gomq/packages/models"
 )
 
 type outMessageRepo struct {
-	db database.Database
+	db dbs.IDatabase
 }
 
-func NewOutMessageRepository(db database.Database) OutMessageRepository {
+func NewOutMessageRepository(db dbs.IDatabase) OutMessageRepository {
 	return &outMessageRepo{db: db}
 }
 
 func (o *outMessageRepo) GetSingleOutMessage(query map[string]interface{}) (*models.OutMessage, error) {
 	message := models.OutMessage{}
-	err := dbs.Database.FindOne(dbs.CollectionOutMessage, query, "-_id", &message)
+	err := o.db.FindOne(dbs.CollectionOutMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +29,7 @@ func (o *outMessageRepo) GetSingleOutMessage(query map[string]interface{}) (*mod
 }
 func (o *outMessageRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]models.OutMessage, error) {
 	message := []models.OutMessage{}
-	_, err := dbs.Database.FindManyPaging(dbs.CollectionOutMessage, query, "-_id", 1,
+	_, err := o.db.FindManyPaging(dbs.CollectionOutMessage, query, "-_id", 1,
 		limit, &message)
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func (o *outMessageRepo) AddOutMessage(message *models.OutMessage) error {
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
 
-	err := dbs.Database.InsertOne(dbs.CollectionOutMessage, message)
+	err := o.db.InsertOne(dbs.CollectionOutMessage, message)
 	if err != nil {
 		return err
 	}
@@ -60,7 +59,7 @@ func (o *outMessageRepo) UpdateOutMessage(message *models.OutMessage) error {
 	bson.Unmarshal(data, &payload)
 
 	change := bson.M{"$set": payload}
-	err := dbs.Database.UpdateOne(dbs.CollectionOutMessage, selector, change)
+	err := o.db.UpdateOne(dbs.CollectionOutMessage, selector, change)
 	if err != nil {
 		return err
 	}

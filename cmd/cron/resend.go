@@ -1,10 +1,10 @@
 package main
 
 import (
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/dbs"
+	"gomq/packages/database"
 	"gomq/packages/outgoing"
 	"gomq/packages/queue"
 )
@@ -14,7 +14,7 @@ const ResendOutMessageLimit = 100
 func main() {
 	repo := outgoing.NewRepository()
 
-	query := bson.M{"status": dbs.OutMessageStatusWait}
+	query := bson.M{"status": database.OutMessageStatusWait}
 	messages, _ := repo.GetOutMessages(query, ResendOutMessageLimit)
 	if messages == nil {
 		logger.Info("[Resend Message] Not found any wait message!")

@@ -1,25 +1,24 @@
 package repositories
 
 import (
-	"gitlab.com/quangdangfit/gocommon/database"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 	"gomq/packages/models"
 )
 
 type routingRepo struct {
-	db database.Database
+	db dbs.IDatabase
 }
 
-func NewRoutingRepository(db database.Database) RoutingRepository {
+func NewRoutingRepository(db dbs.IDatabase) RoutingRepository {
 	return &routingRepo{db: db}
 }
 
 func (r *routingRepo) GetRoutingKey(query map[string]interface{}) (*models.RoutingKey, error) {
 	var routingKey models.RoutingKey
 	query["active"] = true
-	err := dbs.Database.FindOne(dbs.CollectionRoutingKey, query, "",
+	err := r.db.FindOne(dbs.CollectionRoutingKey, query, "",
 		&routingKey)
 	if err != nil {
 		return nil, err

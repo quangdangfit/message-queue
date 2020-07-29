@@ -3,11 +3,11 @@ package queue
 import (
 	"encoding/json"
 
+	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
 
 	"gomq/config"
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 	"gomq/packages/outgoing"
 	"gomq/utils"
 )

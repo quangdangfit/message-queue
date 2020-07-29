@@ -3,15 +3,15 @@ package services
 import (
 	"net/http"
 
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 	"gomq/packages/outgoing"
 	"gomq/packages/queue"
 	"gomq/utils"
 
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/quangdangfit/gosdk/utils/logger"
+	"github.com/quangdangfit/gosdk/validator"
 )
 
 type Sender interface {
@@ -38,7 +38,7 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 	}
 
 	validator := validator.New()
-	if err = validator.Struct(req); err != nil {
+	if err = validator.Validate(req); err != nil {
 		logger.Error("Publish: Bad request: ", err)
 		return c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
 	}

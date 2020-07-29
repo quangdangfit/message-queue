@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/manucorporat/try"
+	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
 
 	"gomq/config"
 	"gomq/packages/incoming"

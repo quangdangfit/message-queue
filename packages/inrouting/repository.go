@@ -3,7 +3,7 @@ package inrouting
 import (
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 )
 
 type Repository interface {

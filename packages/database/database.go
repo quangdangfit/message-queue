@@ -1,15 +1,15 @@
 package database
 
 import (
-	"gitlab.com/quangdangfit/gocommon/database"
-	"gitlab.com/quangdangfit/gocommon/database/mongo"
+	godb "github.com/quangdangfit/gosdk/database"
+	"github.com/quangdangfit/gosdk/database/mongo"
 	"go.uber.org/dig"
 	"gopkg.in/mgo.v2"
 
 	"gomq/config"
 )
 
-var Database mongo.MongoDB
+var Database godb.Mongo
 
 const (
 	CollectionInMessage  = "in_message"
@@ -33,8 +33,12 @@ const (
 	InMessageStatusCanceled    = "canceled"
 )
 
-func NewDatabase() database.Database {
-	dbConfig := database.DBConfig{
+type IDatabase interface {
+	godb.Mongo
+}
+
+func NewDatabase() IDatabase {
+	dbConfig := godb.Config{
 		Hosts:        config.Config.MongoDB.Host,
 		AuthDatabase: "admin",
 		AuthUserName: config.Config.MongoDB.Username,

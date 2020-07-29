@@ -4,25 +4,24 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/quangdangfit/gocommon/database"
-	"gitlab.com/quangdangfit/gocommon/utils/logger"
+	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/dbs"
+	dbs "gomq/packages/database"
 	"gomq/packages/models"
 )
 
 type inMessageRepo struct {
-	db database.Database
+	db dbs.IDatabase
 }
 
-func NewInMessageRepository(db database.Database) InMessageRepository {
+func NewInMessageRepository(db dbs.IDatabase) InMessageRepository {
 	return &inMessageRepo{db: db}
 }
 
 func (i *inMessageRepo) GetSingleInMessage(query map[string]interface{}) (*models.InMessage, error) {
 	message := models.InMessage{}
-	err := dbs.Database.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
+	err := i.db.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,7 @@ func (i *inMessageRepo) GetSingleInMessage(query map[string]interface{}) (*model
 func (i *inMessageRepo) GetInMessages(query map[string]interface{}, limit int) (*[]models.InMessage, error) {
 	message := []models.InMessage{}
 
-	_, err := dbs.Database.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
+	_, err := i.db.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
 		limit, &message)
 	if err != nil {
 		return nil, err
@@ -48,7 +47,7 @@ func (i *inMessageRepo) AddInMessage(message *models.InMessage) error {
 	message.ID = uuid.New().String()
 	message.Attempts = 0
 
-	err := dbs.Database.InsertOne(dbs.CollectionInMessage, message)
+	err := i.db.InsertOne(dbs.CollectionInMessage, message)
 	if err != nil {
 		return err
 	}
@@ -64,7 +63,7 @@ func (i *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
 	bson.Unmarshal(data, &payload)
 
 	change := bson.M{"$set": payload}
-	err := dbs.Database.UpdateOne(dbs.CollectionInMessage, selector, change)
+	err := i.db.UpdateOne(dbs.CollectionInMessage, selector, change)
 	if err != nil {
 		return err
 	}
