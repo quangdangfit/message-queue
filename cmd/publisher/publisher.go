@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	"gitlab.com/quangdangfit/gocommon/utils/logger"
 
-	"gomq/packages/routers"
+	"gomq/packages/router"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 		e.DefaultHTTPErrorHandler(err, c)
 	}
 
-	routers.Message(e)
+	router.Message(e)
 	// Start server
 	go func() {
 		port := "8080"
