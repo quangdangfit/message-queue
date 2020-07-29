@@ -1,8 +1,9 @@
-package dbs
+package database
 
 import (
-	db "gitlab.com/quangdangfit/gocommon/database"
+	"gitlab.com/quangdangfit/gocommon/database"
 	"gitlab.com/quangdangfit/gocommon/database/mongo"
+	"go.uber.org/dig"
 	"gopkg.in/mgo.v2"
 
 	"gomq/config"
@@ -32,8 +33,8 @@ const (
 	InMessageStatusCanceled    = "canceled"
 )
 
-func init() {
-	dbConfig := db.DBConfig{
+func NewDatabase() database.Database {
+	dbConfig := database.DBConfig{
 		Hosts:        config.Config.MongoDB.Host,
 		AuthDatabase: "admin",
 		AuthUserName: config.Config.MongoDB.Username,
@@ -43,9 +44,11 @@ func init() {
 		Replica:      config.Config.MongoDB.Replica,
 	}
 
-	Database = mongo.New(dbConfig)
+	return mongo.New(dbConfig)
+}
 
-	ensureIndex()
+func Inject(container *dig.Container) {
+	_ = container.Provide(NewDatabase)
 }
 
 func ensureIndex() {
