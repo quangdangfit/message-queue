@@ -1,25 +1,24 @@
-package outgoing
+package services
 
 import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
+
+	"gomq/app/models"
+	"gomq/app/repositories"
 )
 
-type Handler interface {
-	HandleMessage(message *OutMessage) (err error)
-}
-
 type handler struct {
-	repo Repository
+	repo repositories.OutMessageRepository
 }
 
-func NewHandler() Handler {
+func NewOutMessageService(repo repositories.OutMessageRepository) OutMessageService {
 	return &handler{
-		repo: NewRepository(),
+		repo: repo,
 	}
 }
 
-func (h *handler) HandleMessage(message *OutMessage) (
+func (h *handler) HandleMessage(message *models.OutMessage) (
 	err error) {
 
 	msg, err := h.repo.GetSingleOutMessage(bson.M{"id": message.ID})

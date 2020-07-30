@@ -3,8 +3,8 @@ package repositories
 import (
 	"gopkg.in/mgo.v2/bson"
 
-	dbs "gomq/packages/database"
-	"gomq/packages/models"
+	dbs "gomq/app/database"
+	"gomq/app/models"
 )
 
 type routingRepo struct {

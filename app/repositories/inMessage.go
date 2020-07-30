@@ -7,8 +7,8 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	dbs "gomq/packages/database"
-	"gomq/packages/models"
+	dbs "gomq/app/database"
+	"gomq/app/models"
 )
 
 type inMessageRepo struct {

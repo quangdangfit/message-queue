@@ -11,8 +11,9 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
 
+	"gomq/app/models"
+	"gomq/app/services"
 	"gomq/config"
-	"gomq/packages/incoming"
 )
 
 const (
@@ -20,10 +21,9 @@ const (
 )
 
 type Consumer interface {
-	MessageQueue
 	RunConsumer(handler func([]byte) bool)
 	getHeaderKey(msg amqp.Delivery, key string) string
-	parseMessageFromDelivery(msg amqp.Delivery) (*incoming.InMessage, error)
+	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
 	subscribe() (<-chan amqp.Delivery, error)
 	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool, threads int)
@@ -39,12 +39,15 @@ type consumer struct {
 	lastRecoverTime int64
 	//track service current status
 	currentStatus atomic.Value
+
+	service services.InMessageService
 }
 
-func NewConsumer() Consumer {
+func NewConsumer(service services.InMessageService) Consumer {
 	var sub = consumer{
 		done:            make(chan error),
 		lastRecoverTime: time.Now().Unix(),
+		service:         service,
 	}
 
 	sub.config = &AMQPConfig{
@@ -95,11 +98,11 @@ func (cons *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
 }
 
 func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
-	*incoming.InMessage, error) {
+	*models.InMessage, error) {
 
 	var payload interface{}
 	json.Unmarshal(msg.Body, &payload)
-	message := incoming.InMessage{
+	message := models.InMessage{
 		Payload:     payload,
 		OriginCode:  msg.Headers["origin_code"].(string),
 		OriginModel: msg.Headers["origin_model"].(string),
@@ -218,11 +221,10 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 
 func (cons *consumer) handle(msg amqp.Delivery) {
 	message, _ := cons.parseMessageFromDelivery(msg)
-	receiver := incoming.NewHandler()
-	err := receiver.HandleMessage(message, msg.RoutingKey)
+	err := cons.service.HandleMessage(message, msg.RoutingKey)
 	if err != nil {
-		logger.Errorf("Failed to handle message, routing_key %s, "+
-			"model %s, code %s, error: %s", message.RoutingKey.Name,
+		logger.Errorf("Failed to handle message %s, routing_key %s, "+
+			"model %s, code %s, error: %s", message.ID, message.RoutingKey.Name,
 			message.OriginModel, message.OriginCode, err)
 	}
 

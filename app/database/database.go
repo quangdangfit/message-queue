@@ -51,8 +51,10 @@ func NewDatabase() IDatabase {
 	return mongo.New(dbConfig)
 }
 
-func Inject(container *dig.Container) {
+func Inject(container *dig.Container) error {
 	_ = container.Provide(NewDatabase)
+
+	return nil
 }
 
 func ensureIndex() {

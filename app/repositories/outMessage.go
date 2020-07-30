@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 	"gopkg.in/mgo.v2/bson"
 
-	dbs "gomq/packages/database"
-	"gomq/packages/models"
+	dbs "gomq/app/database"
+	"gomq/app/models"
 )
 
 type outMessageRepo struct {

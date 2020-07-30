@@ -6,25 +6,27 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
 
+	dbs "gomq/app/database"
+	"gomq/app/models"
+	"gomq/app/services"
 	"gomq/config"
-	dbs "gomq/packages/database"
-	"gomq/packages/outgoing"
 	"gomq/utils"
 )
 
 type Publisher interface {
-	MessageQueue
-	Publish(message *outgoing.OutMessage, reliable bool) error
-	handle(message *outgoing.OutMessage) error
-	confirmOne(message *outgoing.OutMessage, confirms <-chan amqp.Confirmation) bool
+	Publish(message *models.OutMessage, reliable bool) error
+	confirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool
 }
 
 type publisher struct {
 	messageQueue
+	service services.OutMessageService
 }
 
-func NewPublisher() Publisher {
-	var pub publisher
+func NewPublisher(service services.OutMessageService) Publisher {
+	pub := publisher{
+		service: service,
+	}
 
 	pub.config = &AMQPConfig{
 		AMQPUrl:      config.Config.AMQP.URL,
@@ -45,7 +47,7 @@ func NewPublisher() Publisher {
 	return &pub
 }
 
-func (pub *publisher) Publish(message *outgoing.OutMessage, reliable bool) (
+func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	err error) {
 
 	// New channel and close after publish
@@ -93,19 +95,14 @@ func (pub *publisher) Publish(message *outgoing.OutMessage, reliable bool) (
 	if confirms != nil {
 		defer func() {
 			pub.confirmOne(message, confirms)
-			pub.handle(message)
+			pub.service.HandleMessage(message)
 		}()
 	}
 
 	return nil
 }
 
-func (pub *publisher) handle(message *outgoing.OutMessage) error {
-	outHandler := outgoing.NewHandler()
-	return outHandler.HandleMessage(message)
-}
-
-func (pub *publisher) confirmOne(message *outgoing.OutMessage,
+func (pub *publisher) confirmOne(message *models.OutMessage,
 	confirms <-chan amqp.Confirmation) bool {
 
 	confirmed := <-confirms

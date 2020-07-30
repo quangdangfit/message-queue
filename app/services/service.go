@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/dig"
 
-	"gomq/packages/models"
+	"gomq/app/models"
 )
 
 type InMessageService interface {
@@ -18,7 +18,9 @@ type OutMessageService interface {
 	HandleMessage(message *models.OutMessage) (err error)
 }
 
-func Inject(container *dig.Container) {
+func Inject(container *dig.Container) error {
 	_ = container.Provide(NewInMessageService)
 	_ = container.Provide(NewOutMessageService)
+
+	return nil
 }

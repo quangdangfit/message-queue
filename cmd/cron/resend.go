@@ -4,9 +4,9 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/packages/database"
-	"gomq/packages/outgoing"
-	"gomq/packages/queue"
+	"gomq/app/database"
+	"gomq/app/outgoing"
+	"gomq/app/queue"
 )
 
 const ResendOutMessageLimit = 100

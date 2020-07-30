@@ -4,8 +4,8 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/packages/database"
-	"gomq/packages/incoming"
+	"gomq/app/database"
+	"gomq/app/incoming"
 )
 
 const (

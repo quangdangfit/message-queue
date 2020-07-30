@@ -3,9 +3,9 @@ package api
 import (
 	"net/http"
 
-	dbs "gomq/packages/database"
-	"gomq/packages/outgoing"
-	"gomq/packages/queue"
+	dbs "gomq/app/database"
+	"gomq/app/models"
+	"gomq/app/queue"
 	"gomq/utils"
 
 	"github.com/jinzhu/copier"
@@ -14,23 +14,15 @@ import (
 	"github.com/quangdangfit/gosdk/validator"
 )
 
-type Sender interface {
-	PublishMessage(c echo.Context) (err error)
-	parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
-		*outgoing.OutMessage, error)
-	getAPIKey(c echo.Context) string
-}
-
-type sender struct {
+type Sender struct {
 	pub queue.Publisher
 }
 
-func NewSender() Sender {
-	pub := queue.NewPublisher()
-	return &sender{pub: pub}
+func NewSender(pub queue.Publisher) *Sender {
+	return &Sender{pub: pub}
 }
 
-func (s *sender) PublishMessage(c echo.Context) (err error) {
+func (s *Sender) PublishMessage(c echo.Context) (err error) {
 	var req utils.MessageRequest
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Publish: Bad request: ", err)
@@ -58,9 +50,9 @@ func (s *sender) PublishMessage(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
 }
 
-func (s *sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
-	*outgoing.OutMessage, error) {
-	message := outgoing.OutMessage{}
+func (s *Sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
+	*models.OutMessage, error) {
+	message := models.OutMessage{}
 	err := copier.Copy(&message, &msgRequest)
 
 	if err != nil {
@@ -72,6 +64,6 @@ func (s *sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
 	return &message, nil
 }
 
-func (s *sender) getAPIKey(c echo.Context) string {
+func (s *Sender) getAPIKey(c echo.Context) string {
 	return c.Request().Header.Get("X-Api-Key")
 }
