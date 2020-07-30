@@ -1,5 +1,9 @@
 package models
 
+const (
+	CollectionRoutingKey = "routing_key"
+)
+
 type RoutingKey struct {
 	Name      string `json:"name,omitempty" bson:"name,omitempty"`
 	Group     string `json:"group,omitempty" bson:"group,omitempty"`

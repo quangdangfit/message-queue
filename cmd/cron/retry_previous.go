@@ -5,6 +5,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	dbs "gomq/app/database"
+	"gomq/app/models"
+
 	"gomq/app/incoming"
 )
 
@@ -16,7 +18,7 @@ const (
 func main() {
 	repo := incoming.NewRepository()
 
-	query := bson.M{"status": dbs.InMessageStatusWaitPrevMsg}
+	query := bson.M{"status": models.InMessageStatusWaitPrevMsg}
 	messages, _ := repo.GetInMessages(query, RetryPrevInMessageLimit)
 	if messages == nil {
 		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
@@ -33,8 +35,8 @@ func main() {
 		}
 		prevMsg, err := repo.GetSingleInMessage(query)
 		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
-			(prevMsg != nil && prevMsg.Status != dbs.InMessageStatusSuccess &&
-				prevMsg.Status != dbs.InMessageStatusCanceled) {
+			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
+				prevMsg.Status != models.InMessageStatusCanceled) {
 
 			logger.Infof("[Retry Prev Message] Ignore message %s!", msg.ID)
 			continue
@@ -47,7 +49,7 @@ func main() {
 
 		msg.Attempts += 1
 		if msg.Attempts >= MaxPrevRetryTimes {
-			msg.Status = dbs.InMessageStatusFailed
+			msg.Status = models.InMessageStatusFailed
 		}
 		err = repo.UpdateInMessage(&msg)
 		if err != nil {

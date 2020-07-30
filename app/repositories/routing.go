@@ -18,7 +18,7 @@ func NewRoutingRepository(db dbs.IDatabase) RoutingRepository {
 func (r *routingRepo) GetRoutingKey(query map[string]interface{}) (*models.RoutingKey, error) {
 	var routingKey models.RoutingKey
 	query["active"] = true
-	err := r.db.FindOne(dbs.CollectionRoutingKey, query, "",
+	err := r.db.FindOne(models.CollectionRoutingKey, query, "",
 		&routingKey)
 	if err != nil {
 		return nil, err

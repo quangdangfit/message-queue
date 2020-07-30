@@ -20,7 +20,7 @@ func NewOutMessageRepository(db dbs.IDatabase) OutMessageRepository {
 
 func (o *outMessageRepo) GetSingleOutMessage(query map[string]interface{}) (*models.OutMessage, error) {
 	message := models.OutMessage{}
-	err := o.db.FindOne(dbs.CollectionOutMessage, query, "-_id", &message)
+	err := o.db.FindOne(models.CollectionOutMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (o *outMessageRepo) GetSingleOutMessage(query map[string]interface{}) (*mod
 }
 func (o *outMessageRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]models.OutMessage, error) {
 	message := []models.OutMessage{}
-	_, err := o.db.FindManyPaging(dbs.CollectionOutMessage, query, "-_id", 1,
+	_, err := o.db.FindManyPaging(models.CollectionOutMessage, query, "-_id", 1,
 		limit, &message)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (o *outMessageRepo) AddOutMessage(message *models.OutMessage) error {
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
 
-	err := o.db.InsertOne(dbs.CollectionOutMessage, message)
+	err := o.db.InsertOne(models.CollectionOutMessage, message)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (o *outMessageRepo) UpdateOutMessage(message *models.OutMessage) error {
 	bson.Unmarshal(data, &payload)
 
 	change := bson.M{"$set": payload}
-	err := o.db.UpdateOne(dbs.CollectionOutMessage, selector, change)
+	err := o.db.UpdateOne(models.CollectionOutMessage, selector, change)
 	if err != nil {
 		return err
 	}

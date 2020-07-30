@@ -4,8 +4,7 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/app/database"
-	"gomq/app/incoming"
+	"gomq/app/models"
 )
 
 const (
@@ -16,7 +15,7 @@ const (
 func main() {
 	repo := incoming.NewRepository()
 
-	query := bson.M{"status": database.InMessageStatusWaitRetry}
+	query := bson.M{"status": models.InMessageStatusWaitRetry}
 	messages, _ := repo.GetInMessages(query, RetryInMessageLimit)
 	if messages == nil {
 		logger.Info("[Retry Message] Not found any wait_retry message!")
@@ -34,7 +33,7 @@ func main() {
 
 		msg.Attempts += 1
 		if msg.Attempts >= MaxRetryTimes {
-			msg.Status = database.InMessageStatusFailed
+			msg.Status = models.InMessageStatusFailed
 		}
 		err = repo.UpdateInMessage(&msg)
 		if err != nil {

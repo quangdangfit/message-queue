@@ -11,7 +11,6 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"gopkg.in/mgo.v2/bson"
 
-	dbs "gomq/app/database"
 	"gomq/app/models"
 	"gomq/app/repositories"
 	"gomq/utils"
@@ -41,7 +40,7 @@ func (i *inService) HandleMessage(message *models.InMessage, routingKey string) 
 	query := bson.M{"name": routingKey}
 	inRoutingKey, err := i.routingRepo.GetRoutingKey(query)
 	if err != nil {
-		message.Status = dbs.InMessageStatusInvalid
+		message.Status = models.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseLog(err))
 		logger.Error("Cannot find routing key ", err)
 		return err
@@ -52,10 +51,10 @@ func (i *inService) HandleMessage(message *models.InMessage, routingKey string) 
 	if prevRoutingKey != nil {
 		prevMsg, _ := i.getPreviousMessage(*message, prevRoutingKey.Name)
 
-		if prevMsg == nil || (prevMsg.Status != dbs.InMessageStatusSuccess &&
-			prevMsg.Status != dbs.InMessageStatusCanceled) {
+		if prevMsg == nil || (prevMsg.Status != models.InMessageStatusSuccess &&
+			prevMsg.Status != models.InMessageStatusCanceled) {
 
-			message.Status = dbs.InMessageStatusWaitPrevMsg
+			message.Status = models.InMessageStatusWaitPrevMsg
 
 			logger.Warn("Set message to WAIT_PREV_MESSAGE")
 			return nil
@@ -64,26 +63,26 @@ func (i *inService) HandleMessage(message *models.InMessage, routingKey string) 
 
 	res, err := i.callAPI(message)
 	if err != nil {
-		message.Status = dbs.InMessageStatusWaitRetry
+		message.Status = models.InMessageStatusWaitRetry
 		message.Logs = append(message.Logs, utils.ParseLog(err))
 		return err
 	}
 
 	if res.StatusCode == http.StatusNotFound || res.StatusCode == http.StatusUnauthorized {
-		message.Status = dbs.InMessageStatusWaitRetry
+		message.Status = models.InMessageStatusWaitRetry
 		err = errors.New(fmt.Sprintf("failed to call API %s", res.Status))
 		message.Logs = append(message.Logs, utils.ParseLog(res))
 		return err
 	}
 
 	if res.StatusCode != http.StatusOK {
-		message.Status = dbs.InMessageStatusWaitRetry
+		message.Status = models.InMessageStatusWaitRetry
 		err = errors.New("failed to call API")
 		message.Logs = append(message.Logs, utils.ParseLog(res))
 		return err
 	}
 
-	message.Status = dbs.InMessageStatusSuccess
+	message.Status = models.InMessageStatusSuccess
 	message.Logs = append(message.Logs, utils.ParseLog(res))
 
 	return nil

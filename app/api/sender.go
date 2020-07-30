@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	dbs "gomq/app/database"
 	"gomq/app/models"
 	"gomq/app/queue"
 	"gomq/utils"
@@ -58,7 +57,7 @@ func (s *Sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
 	if err != nil {
 		return &message, err
 	}
-	message.Status = dbs.OutMessageStatusWait
+	message.Status = models.OutMessageStatusWait
 	message.APIKey = s.getAPIKey(c)
 
 	return &message, nil

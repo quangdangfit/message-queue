@@ -6,7 +6,6 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
 
-	dbs "gomq/app/database"
 	"gomq/app/models"
 	"gomq/app/services"
 	"gomq/config"
@@ -86,7 +85,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 			// a bunch of application/implementation-specific fields
 		},
 	); err != nil {
-		message.Status = dbs.OutMessageStatusFailed
+		message.Status = models.OutMessageStatusFailed
 		message.Logs = append(message.Logs, utils.ParseLog(err))
 		logger.Error("Failed to publish message ", err)
 		return err
@@ -110,13 +109,13 @@ func (pub *publisher) confirmOne(message *models.OutMessage,
 		logger.Info("Confirmed delivery with delivery tag: ",
 			confirmed.DeliveryTag)
 
-		message.Status = dbs.OutMessageStatusSent
+		message.Status = models.OutMessageStatusSent
 		return true
 	}
 
 	logger.Info("Failed delivery of delivery tag: ",
 		confirmed.DeliveryTag)
 
-	message.Status = dbs.OutMessageStatusSentWait
+	message.Status = models.OutMessageStatusSentWait
 	return false
 }

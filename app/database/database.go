@@ -6,32 +6,11 @@ import (
 	"go.uber.org/dig"
 	"gopkg.in/mgo.v2"
 
+	"gomq/app/models"
 	"gomq/config"
 )
 
 var Database godb.Mongo
-
-const (
-	CollectionInMessage  = "in_message"
-	CollectionOutMessage = "out_message"
-	CollectionRoutingKey = "routing_key"
-
-	OutMessageStatusWait     = "wait"
-	OutMessageStatusSent     = "sent"
-	OutMessageStatusSentWait = "sent_wait"
-	OutMessageStatusFailed   = "failed"
-	OutMessageStatusCanceled = "canceled"
-	OutMessageStatusInvalid  = "invalid"
-
-	InMessageStatusReceived    = "received"
-	InMessageStatusSuccess     = "success"
-	InMessageStatusWaitRetry   = "wait_retry"
-	InMessageStatusWorking     = "working"
-	InMessageStatusFailed      = "failed"
-	InMessageStatusInvalid     = "invalid"
-	InMessageStatusWaitPrevMsg = "wait_prev_msg"
-	InMessageStatusCanceled    = "canceled"
-)
 
 type IDatabase interface {
 	godb.Mongo
@@ -67,8 +46,8 @@ func ensureIndex() {
 		Sparse:     true,
 		Name:       "out_message_id_index",
 	}
-	Database.DropIndex(CollectionOutMessage, indexOutId.Name)
-	Database.EnsureIndex(CollectionOutMessage, indexOutId)
+	Database.DropIndex(models.CollectionOutMessage, indexOutId.Name)
+	Database.EnsureIndex(models.CollectionOutMessage, indexOutId)
 
 	indexOutObj := mgo.Index{
 		Key:        []string{"origin_id, origin_model"},
@@ -78,8 +57,8 @@ func ensureIndex() {
 		Sparse:     true,
 		Name:       "origin_object_index",
 	}
-	Database.DropIndex(CollectionOutMessage, indexOutObj.Name)
-	Database.EnsureIndex(CollectionOutMessage, indexOutObj)
+	Database.DropIndex(models.CollectionOutMessage, indexOutObj.Name)
+	Database.EnsureIndex(models.CollectionOutMessage, indexOutObj)
 
 	// Index for InMessages
 	indexInId := mgo.Index{
@@ -90,8 +69,8 @@ func ensureIndex() {
 		Sparse:     true,
 		Name:       "in_message_id_index",
 	}
-	Database.DropIndex(CollectionInMessage, indexInId.Name)
-	Database.EnsureIndex(CollectionInMessage, indexInId)
+	Database.DropIndex(models.CollectionInMessage, indexInId.Name)
+	Database.EnsureIndex(models.CollectionInMessage, indexInId)
 
 	indexInObj := mgo.Index{
 		Key:        []string{"origin_id, origin_model"},
@@ -101,6 +80,6 @@ func ensureIndex() {
 		Sparse:     true,
 		Name:       "origin_object_index",
 	}
-	Database.DropIndex(CollectionInMessage, indexInObj.Name)
-	Database.EnsureIndex(CollectionInMessage, indexInObj)
+	Database.DropIndex(models.CollectionInMessage, indexInObj.Name)
+	Database.EnsureIndex(models.CollectionInMessage, indexInObj)
 }

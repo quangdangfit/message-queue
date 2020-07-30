@@ -4,6 +4,19 @@ import (
 	"time"
 )
 
+const (
+	CollectionInMessage = "in_message"
+
+	InMessageStatusReceived    = "received"
+	InMessageStatusSuccess     = "success"
+	InMessageStatusWaitRetry   = "wait_retry"
+	InMessageStatusWorking     = "working"
+	InMessageStatusFailed      = "failed"
+	InMessageStatusInvalid     = "invalid"
+	InMessageStatusWaitPrevMsg = "wait_prev_msg"
+	InMessageStatusCanceled    = "canceled"
+)
+
 type InMessage struct {
 	ID          string        `json:"id,omitempty" bson:"id,omitempty"`
 	RoutingKey  RoutingKey    `json:"routing_key,omitempty" bson:"routing_key,omitempty"`

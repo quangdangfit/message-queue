@@ -21,7 +21,7 @@ func NewInMessageRepository(db dbs.IDatabase) InMessageRepository {
 
 func (i *inMessageRepo) GetSingleInMessage(query map[string]interface{}) (*models.InMessage, error) {
 	message := models.InMessage{}
-	err := i.db.FindOne(dbs.CollectionInMessage, query, "-_id", &message)
+	err := i.db.FindOne(models.CollectionInMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (i *inMessageRepo) GetSingleInMessage(query map[string]interface{}) (*model
 func (i *inMessageRepo) GetInMessages(query map[string]interface{}, limit int) (*[]models.InMessage, error) {
 	message := []models.InMessage{}
 
-	_, err := i.db.FindManyPaging(dbs.CollectionInMessage, query, "-_id", 1,
+	_, err := i.db.FindManyPaging(models.CollectionInMessage, query, "-_id", 1,
 		limit, &message)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (i *inMessageRepo) AddInMessage(message *models.InMessage) error {
 	message.ID = uuid.New().String()
 	message.Attempts = 0
 
-	err := i.db.InsertOne(dbs.CollectionInMessage, message)
+	err := i.db.InsertOne(models.CollectionInMessage, message)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (i *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
 	bson.Unmarshal(data, &payload)
 
 	change := bson.M{"$set": payload}
-	err := i.db.UpdateOne(dbs.CollectionInMessage, selector, change)
+	err := i.db.UpdateOne(models.CollectionInMessage, selector, change)
 	if err != nil {
 		return err
 	}
