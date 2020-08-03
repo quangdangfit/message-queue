@@ -4,6 +4,7 @@ import (
 	"go.uber.org/dig"
 
 	"gomq/app/models"
+	"gomq/app/schema"
 )
 
 type InMessageRepository interface {
@@ -16,7 +17,7 @@ type InMessageRepository interface {
 
 type OutMessageRepository interface {
 	GetSingleOutMessage(query map[string]interface{}) (*models.OutMessage, error)
-	GetOutMessages(query map[string]interface{}, limit int) (*[]models.OutMessage, error)
+	GetOutMessages(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error)
 	AddOutMessage(message *models.OutMessage) error
 	UpdateOutMessage(message *models.OutMessage) error
 }
