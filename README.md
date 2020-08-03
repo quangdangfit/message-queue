@@ -4,11 +4,17 @@
 #### Setup
 * Create config file: `cp config/config.sample.yaml config/config.yaml`
 * Config database and amqp config
+config/config.yaml
+```yaml
+...
+mode: # 0: run publisher and consumer, 1: run publisher, 2: run consumer 
+...
+```
+
 * Install require packages: `go mod vendor`
 
 #### Startup
-* Run Publisher: `go run -mod=vendor gomq/cmds/publisher/publisher.go`
-* Run Consumer: `go run -mod=vendor gomq/cmds/consumer/consumer.go`
+* Run: `go run -mod=vendor gomq/main.go`
 * Publish message:
 ```
 curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
