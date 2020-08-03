@@ -2,7 +2,6 @@ package services
 
 import (
 	"github.com/quangdangfit/gosdk/utils/logger"
-	"gopkg.in/mgo.v2/bson"
 
 	"gomq/app/models"
 	"gomq/app/repositories"
@@ -19,10 +18,8 @@ func NewOutMessageService(repo repositories.OutMessageRepository) OutMessageServ
 	}
 }
 
-func (h *outService) HandleMessage(message *models.OutMessage) (
-	err error) {
-
-	msg, err := h.repo.GetSingleOutMessage(bson.M{"id": message.ID})
+func (h *outService) HandleMessage(message *models.OutMessage) (err error) {
+	msg, err := h.repo.GetOutMessageByID(message.ID)
 	if msg != nil {
 		err = h.repo.UpdateOutMessage(message)
 		if err != nil {

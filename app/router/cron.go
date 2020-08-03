@@ -13,6 +13,8 @@ func RegisterCron(e *echo.Echo, container *dig.Container) error {
 	) error {
 		cronRoute := e.Group("/api/v1/cron")
 		cronRoute.POST("/resend", cron.Resend)
+		cronRoute.POST("/retry", cron.Retry)
+		cronRoute.POST("/retry_previous", cron.RetryPrevious)
 
 		return nil
 	})

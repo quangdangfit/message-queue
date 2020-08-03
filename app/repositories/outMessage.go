@@ -8,6 +8,7 @@ import (
 
 	dbs "gomq/app/database"
 	"gomq/app/models"
+	"gomq/app/schema"
 )
 
 type outMessageRepo struct {
@@ -18,8 +19,10 @@ func NewOutMessageRepository(db dbs.IDatabase) OutMessageRepository {
 	return &outMessageRepo{db: db}
 }
 
-func (o *outMessageRepo) GetSingleOutMessage(query map[string]interface{}) (*models.OutMessage, error) {
+func (o *outMessageRepo) GetOutMessageByID(id string) (*models.OutMessage, error) {
 	message := models.OutMessage{}
+	query := bson.M{"id": id}
+
 	err := o.db.FindOne(models.CollectionOutMessage, query, "-_id", &message)
 	if err != nil {
 		return nil, err
@@ -27,9 +30,35 @@ func (o *outMessageRepo) GetSingleOutMessage(query map[string]interface{}) (*mod
 
 	return &message, nil
 }
-func (o *outMessageRepo) GetOutMessages(query map[string]interface{}, limit int) (*[]models.OutMessage, error) {
-	message := []models.OutMessage{}
-	_, err := o.db.FindManyPaging(models.CollectionOutMessage, query, "-_id", 1,
+
+func (o *outMessageRepo) GetSingleOutMessage(query *schema.OutMessageQueryParam) (*models.OutMessage, error) {
+	message := models.OutMessage{}
+
+	var mapQuery map[string]interface{}
+	data, err := bson.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+	bson.Unmarshal(data, &mapQuery)
+
+	err = o.db.FindOne(models.CollectionOutMessage, mapQuery, "-_id", &message)
+	if err != nil {
+		return nil, err
+	}
+
+	return &message, nil
+}
+func (o *outMessageRepo) GetOutMessages(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error) {
+	var message []models.OutMessage
+
+	var mapQuery map[string]interface{}
+	data, err := bson.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+	bson.Unmarshal(data, &mapQuery)
+
+	_, err = o.db.FindManyPaging(models.CollectionOutMessage, mapQuery, "-_id", 1,
 		limit, &message)
 	if err != nil {
 		return nil, err

@@ -40,5 +40,10 @@ func Initialize(container *dig.Container) *echo.Echo {
 		logger.Error("Failed to register API: ", err)
 	}
 
+	err = RegisterCron(app, container)
+	if err != nil {
+		logger.Error("Failed to register Cron API: ", err)
+	}
+
 	return app
 }

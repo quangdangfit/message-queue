@@ -35,16 +35,16 @@ func (cron *Cron) Resend(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
 }
 
-//func (s *Cron) Retry(c *echo.Context) thttp.Response {
-//	logger.Info("Start cronjob resend wait messages")
-//
-//	go s.inService.CronRetry(RetryInMessageLimit)
-//	return thttp.Response{}
-//}
-//
-//func (s *Cron) RetryPrevious(c *echo.Context) thttp.Response {
-//	logger.Info("Start cronjob resend wait previous messages")
-//
-//	go s.inService.CronRetryPrevious(RetryInMessageLimit)
-//	return thttp.Response{}
-//}
+func (s *Cron) Retry(c echo.Context) (err error) {
+	logger.Info("Start cronjob resend wait messages")
+
+	go s.inService.CronRetry(RetryInMessageLimit)
+	return c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
+}
+
+func (s *Cron) RetryPrevious(c echo.Context) (err error) {
+	logger.Info("Start cronjob resend wait previous messages")
+
+	go s.inService.CronRetryPrevious(RetryInMessageLimit)
+	return c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
+}
