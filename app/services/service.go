@@ -3,8 +3,6 @@ package services
 import (
 	"net/http"
 
-	"go.uber.org/dig"
-
 	"gomq/app/models"
 	"gomq/app/schema"
 )
@@ -18,11 +16,4 @@ type InMessageService interface {
 type OutMessageService interface {
 	HandleMessage(message *models.OutMessage) (err error)
 	GetOutMessages(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error)
-}
-
-func Inject(container *dig.Container) error {
-	_ = container.Provide(NewInMessageService)
-	_ = container.Provide(NewOutMessageService)
-
-	return nil
 }
