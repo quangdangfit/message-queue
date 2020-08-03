@@ -1,0 +1,44 @@
+package router
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/quangdangfit/gosdk/utils/logger"
+	"go.uber.org/dig"
+)
+
+func Initialize(container *dig.Container) *echo.Echo {
+	app := echo.New()
+	app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize: 1 << 10, // 1 KB
+	}))
+
+	app.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${time_rfc3339_nano}\t${method}\t${latency_human}\t${uri}\t${status}\n",
+	}))
+	app.Use(middleware.CORS())
+	app.Use(middleware.RequestID())
+	app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
+
+	app.HTTPErrorHandler = func(err error, c echo.Context) {
+		code := http.StatusInternalServerError
+		if he, ok := err.(*echo.HTTPError); ok {
+			code = he.Code
+		}
+		if code == http.StatusUnauthorized {
+			_ = c.JSON(http.StatusUnauthorized, nil)
+		}
+		app.DefaultHTTPErrorHandler(err, c)
+	}
+
+	err := RegisterAPI(app, container)
+	if err != nil {
+		logger.Error("Failed to register API: ", err)
+	}
+
+	return app
+}
