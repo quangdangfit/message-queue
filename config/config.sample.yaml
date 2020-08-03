@@ -1,3 +1,5 @@
+mode: 0
+
 mongodb:
   host: localhost:27017
   database: database

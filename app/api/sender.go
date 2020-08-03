@@ -8,7 +8,7 @@ import (
 	"gomq/utils"
 
 	"github.com/jinzhu/copier"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/quangdangfit/gosdk/validator"
 )
@@ -21,6 +21,13 @@ func NewSender(pub queue.Publisher) *Sender {
 	return &Sender{pub: pub}
 }
 
+// PublishMessage godoc
+// @Summary publish message to amqp
+// @Produce json
+// @Body schema.OutMessageBodyParam
+// @Security ApiKeyAuth
+// @Success 200 {object} schema.OutMessageBodyParam
+// @Router /api/v1/queue/messages [post]
 func (s *Sender) PublishMessage(c echo.Context) (err error) {
 	var req utils.MessageRequest
 	if err := c.Bind(&req); err != nil {

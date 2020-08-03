@@ -1,0 +1,56 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {},
+        "license": {}
+    },
+    "paths": {
+        "/api/v1/queue/messages": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "publish message to amqp",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schema.OutMessageBodyParam"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "schema.OutMessageBodyParam": {
+            "type": "object",
+            "required": [
+                "payload",
+                "routing_key"
+            ],
+            "properties": {
+                "headers": {
+                    "type": "string"
+                },
+                "origin_code": {
+                    "type": "string"
+                },
+                "origin_model": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object"
+                },
+                "routing_key": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
