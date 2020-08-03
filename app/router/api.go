@@ -14,9 +14,6 @@ func RegisterAPI(e *echo.Echo, container *dig.Container) error {
 		msgRoute := e.Group("/api/v1/queue")
 		msgRoute.POST("/messages", sender.PublishMessage)
 
-		cronRoute := e.Group("/api/v1/cron")
-		cronRoute.POST("/resend", sender.PublishMessage)
-
 		return nil
 	})
 

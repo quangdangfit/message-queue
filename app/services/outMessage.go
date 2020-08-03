@@ -2,26 +2,24 @@ package services
 
 import (
 	"github.com/quangdangfit/gosdk/utils/logger"
-	"gopkg.in/mgo.v2/bson"
 
 	"gomq/app/models"
 	"gomq/app/repositories"
+	"gomq/app/schema"
 )
 
-type handler struct {
+type outService struct {
 	repo repositories.OutMessageRepository
 }
 
 func NewOutMessageService(repo repositories.OutMessageRepository) OutMessageService {
-	return &handler{
+	return &outService{
 		repo: repo,
 	}
 }
 
-func (h *handler) HandleMessage(message *models.OutMessage) (
-	err error) {
-
-	msg, err := h.repo.GetSingleOutMessage(bson.M{"id": message.ID})
+func (h *outService) HandleMessage(message *models.OutMessage) (err error) {
+	msg, err := h.repo.GetOutMessageByID(message.ID)
 	if msg != nil {
 		err = h.repo.UpdateOutMessage(message)
 		if err != nil {
@@ -40,4 +38,13 @@ func (h *handler) HandleMessage(message *models.OutMessage) (
 	}
 	logger.Infof("[Handle OutMsg] Inserted msg %s", message.ID)
 	return nil
+}
+
+func (o *outService) GetOutMessages(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error) {
+	msg, err := o.repo.GetOutMessages(query, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return msg, nil
 }

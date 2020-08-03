@@ -9,15 +9,18 @@ import (
 	"time"
 
 	"github.com/quangdangfit/gosdk/utils/logger"
+	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2/bson"
 
 	"gomq/app/models"
 	"gomq/app/repositories"
+	"gomq/app/schema"
 	"gomq/utils"
 )
 
 const (
-	RequestTimeout = 60
+	RequestTimeout       = 60
+	DefaultMaxRetryTimes = 3
 )
 
 type inService struct {
@@ -115,13 +118,100 @@ func (i *inService) callAPI(message *models.InMessage) (*http.Response, error) {
 	return res, nil
 }
 
-func (i *inService) getPreviousMessage(message models.InMessage, routingKey string) (
-	*models.InMessage, error) {
+func (i *inService) getPreviousMessage(message models.InMessage, routingKey string) (*models.InMessage, error) {
 
-	query := bson.M{
-		"origin_model":     message.OriginModel,
-		"origin_code":      message.OriginCode,
-		"routing_key.name": routingKey,
+	query := schema.InMessageQueryParam{
+		OriginModel: message.OriginModel,
+		OriginCode:  message.OriginCode,
+		RoutingKey:  routingKey,
 	}
-	return i.inMsgRepo.GetSingleInMessage(query)
+	return i.inMsgRepo.GetSingleInMessage(&query)
+}
+
+func (i *inService) CronRetry(limit int) error {
+	query := schema.InMessageQueryParam{
+		Status: models.InMessageStatusWaitRetry,
+	}
+
+	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
+	if messages == nil {
+		logger.Info("[Retry Message] Not found any wait_retry message!")
+		return nil
+	}
+
+	logger.Infof("[Retry Message] Found %d wait_retry messages!", len(*messages))
+	for _, msg := range *messages {
+		err := i.HandleMessage(&msg, msg.RoutingKey.Name)
+		if err == nil {
+			continue
+		}
+
+		msg.Attempts += 1
+		if msg.Attempts >= i.getMaxRetryTimes() {
+			msg.Status = models.InMessageStatusFailed
+		}
+		err = i.inMsgRepo.UpdateInMessage(&msg)
+		if err != nil {
+			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s",
+				msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
+		}
+	}
+	logger.Info("[Retry Message] Finish!")
+
+	return nil
+}
+
+func (i *inService) CronRetryPrevious(limit int) error {
+	query := schema.InMessageQueryParam{
+		Status: models.InMessageStatusWaitPrevMsg,
+	}
+	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
+	if messages == nil {
+		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
+		return nil
+	}
+
+	logger.Infof("[Retry Prev Message] Found %d wait_prev messages!", len(*messages))
+	for _, msg := range *messages {
+		query := schema.InMessageQueryParam{
+			RoutingGroup: msg.RoutingKey.Group,
+			RoutingValue: msg.RoutingKey.Value - 1,
+		}
+		prevMsg, err := i.inMsgRepo.GetSingleInMessage(&query)
+		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
+			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
+				prevMsg.Status != models.InMessageStatusCanceled) {
+
+			logger.Infof("[Retry Prev Message] Ignore message %s!", msg.ID)
+			continue
+		}
+
+		err = i.HandleMessage(&msg, msg.RoutingKey.Name)
+		if err == nil {
+			continue
+		}
+
+		msg.Attempts += 1
+		if msg.Attempts >= i.getMaxRetryTimes() {
+			msg.Status = models.InMessageStatusFailed
+		}
+		err = i.inMsgRepo.UpdateInMessage(&msg)
+		if err != nil {
+			logger.Errorf("Sent, failed to update status: %s, %s, %s, "+
+				"error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
+		}
+	}
+	logger.Info("[Retry Prev Message] Finish!")
+
+	return nil
+}
+
+func (i *inService) getMaxRetryTimes() uint {
+	retryTimes := viper.GetUint("ts_rabbit.max_retry_times")
+
+	if retryTimes <= 0 {
+		retryTimes = DefaultMaxRetryTimes
+	}
+
+	return retryTimes
 }
