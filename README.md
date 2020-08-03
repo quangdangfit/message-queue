@@ -23,24 +23,33 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 }'
 ```
 
+| Fields       | Type          | Required | Not Null | Description                       |
+|:-------------|:-------------:|:--------:|:--------:|:----------------------------------|
+| routing_key  | string        | YES      | YES      | Routing key                       |
+| payload      | json          | YES      | YES      | Message content (json)            |
+| origin_model | string        | NO       | NO       | Object model                      |
+| origin_code  | string        | NO       | NO       | Object code                       |
+
+
 #### Diagram
 ![alt text](https://imgur.com/NXuvQLG.jpg "Repository Pattern")
 
 
 #### Structure
-* `cmds/`: define commands
-* `config/`: define configuration
-* `dbs/`: init database connection, create index
-* `packages/`: define packages
-* `utils/`: common package
-
-##### Package Structure
-* `incoming/`: handle logic incoming messages (repo, model, handler)
-* `inrouting/`: handle logic in routing key (repo, model)
-* `outgoing/`: handle logic in routing key (repo, model, handler)
-* `queue/`: contains publisher and consumer to send and receive messages
-* `routers/`: define api url, request body, params
-* `services/`: wrapper message before publish
+```
+├── app  
+│   ├── api             # Handle request & response
+│   ├── dbs             # Database Layer
+│   ├── models          # Models
+│   ├── queue           # AMQP Layer
+│   ├── repositories    # Repositories Layer
+│   ├── router  
+│   │   └── v1          # Router api v1  
+│   ├── schema          # Sechemas  
+│   ├── services        # Business Logic Layer  
+│   └── utils           # Utilities  
+├── config              # Config's files  
+```
 
 #### 📙 Libraries
 - [Echo Framework](https://echo.labstack.com/)
