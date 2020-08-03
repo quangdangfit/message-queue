@@ -1,0 +1,34 @@
+definitions:
+  schema.OutMessageBodyParam:
+    properties:
+      headers:
+        type: string
+      origin_code:
+        type: string
+      origin_model:
+        type: string
+      payload:
+        type: object
+      routing_key:
+        type: string
+    required:
+    - payload
+    - routing_key
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /api/v1/queue/messages:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.OutMessageBodyParam'
+      security:
+      - ApiKeyAuth: []
+      summary: publish message to amqp
+swagger: "2.0"

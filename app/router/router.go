@@ -3,10 +3,13 @@ package router
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/quangdangfit/gosdk/utils/logger"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/dig"
+
+	_ "gomq/docs"
 )
 
 func Initialize(container *dig.Container) *echo.Echo {
@@ -44,6 +47,8 @@ func Initialize(container *dig.Container) *echo.Echo {
 	if err != nil {
 		logger.Error("Failed to register Cron API: ", err)
 	}
+
+	app.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	return app
 }
