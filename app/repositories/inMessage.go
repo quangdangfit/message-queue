@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"gopkg.in/mgo.v2/bson"
 
-	dbs "gomq/app/database"
+	"gomq/app/dbs"
 	"gomq/app/models"
 	"gomq/app/schema"
 )

@@ -5,7 +5,7 @@ import (
 	"go.uber.org/dig"
 
 	"gomq/app/api"
-	"gomq/app/database"
+	"gomq/app/dbs"
 	"gomq/app/queue"
 	"gomq/app/repositories"
 	"gomq/app/services"
@@ -15,7 +15,7 @@ func BuildContainer() *dig.Container {
 	container := dig.New()
 
 	// Inject repositories
-	err := database.Inject(container)
+	err := dbs.Inject(container)
 	if err != nil {
 		logger.Error("Failed to inject database", err)
 	}

@@ -1,23 +1,22 @@
-package database
+package dbs
 
 import (
-	godb "github.com/quangdangfit/gosdk/database"
+	"github.com/quangdangfit/gosdk/database"
 	"github.com/quangdangfit/gosdk/database/mongo"
-	"go.uber.org/dig"
 	"gopkg.in/mgo.v2"
 
 	"gomq/app/models"
 	"gomq/config"
 )
 
-var Database godb.Mongo
+var Database database.Mongo
 
 type IDatabase interface {
-	godb.Mongo
+	database.Mongo
 }
 
 func NewDatabase() IDatabase {
-	dbConfig := godb.Config{
+	dbConfig := database.Config{
 		Hosts:        config.Config.MongoDB.Host,
 		AuthDatabase: "admin",
 		AuthUserName: config.Config.MongoDB.Username,
@@ -28,12 +27,6 @@ func NewDatabase() IDatabase {
 	}
 
 	return mongo.New(dbConfig)
-}
-
-func Inject(container *dig.Container) error {
-	_ = container.Provide(NewDatabase)
-
-	return nil
 }
 
 func ensureIndex() {
