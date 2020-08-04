@@ -7,28 +7,21 @@ import (
 	"github.com/streadway/amqp"
 
 	"gomq/app/models"
-	"gomq/app/schema"
-	"gomq/app/services"
 	"gomq/config"
 	"gomq/utils"
 )
 
 type Publisher interface {
 	Publish(message *models.OutMessage, reliable bool) error
-	CronResend(limit int) error
 	confirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool
 }
 
 type publisher struct {
 	messageQueue
-	service services.OutMessageService
 }
 
-func NewPublisher(service services.OutMessageService) Publisher {
-	pub := publisher{
-		service: service,
-	}
-
+func NewPublisher() Publisher {
+	pub := publisher{}
 	pub.config = &AMQPConfig{
 		AMQPUrl:      config.Config.AMQP.URL,
 		ExchangeName: config.Config.AMQP.ExchangeName,
@@ -96,7 +89,6 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	if confirms != nil {
 		defer func() {
 			pub.confirmOne(message, confirms)
-			pub.service.HandleMessage(message)
 		}()
 	}
 
@@ -120,23 +112,4 @@ func (pub *publisher) confirmOne(message *models.OutMessage,
 
 	message.Status = models.OutMessageStatusSentWait
 	return false
-}
-
-func (pub *publisher) CronResend(limit int) error {
-	query := schema.OutMessageQueryParam{
-		Status: models.OutMessageStatusWait,
-	}
-	messages, _ := pub.service.GetOutMessages(&query, limit)
-	if messages == nil {
-		logger.Info("[Resend Message] Not found any wait message!")
-		return nil
-	}
-
-	logger.Infof("[Resend Message] Found %d wait messages!", len(*messages))
-	for _, msg := range *messages {
-		pub.Publish(&msg, true)
-	}
-	logger.Info("[Resend Message] Finish!")
-
-	return nil
 }

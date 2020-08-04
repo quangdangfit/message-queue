@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"gomq/app/models"
-	"gomq/app/queue"
+	"gomq/app/services"
 	"gomq/utils"
 
 	"github.com/jinzhu/copier"
@@ -15,11 +15,11 @@ import (
 )
 
 type Sender struct {
-	pub queue.Publisher
+	service services.OutMessageService
 }
 
-func NewSender(pub queue.Publisher) *Sender {
-	return &Sender{pub: pub}
+func NewSender(service services.OutMessageService) *Sender {
+	return &Sender{service: service}
 }
 
 // PublishMessage godoc
@@ -54,7 +54,7 @@ func (s *Sender) PublishMessage(c *gin.Context) {
 		return
 	}
 
-	err = s.pub.Publish(message, true)
+	err = s.service.Publish(c, message)
 	if err != nil {
 		logger.Error("Publish: Bad request: ", err)
 		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
