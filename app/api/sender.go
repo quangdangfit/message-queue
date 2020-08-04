@@ -3,12 +3,13 @@ package api
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+
 	"gomq/app/models"
 	"gomq/app/queue"
 	"gomq/utils"
 
 	"github.com/jinzhu/copier"
-	"github.com/labstack/echo/v4"
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/quangdangfit/gosdk/validator"
 )
@@ -28,35 +29,35 @@ func NewSender(pub queue.Publisher) *Sender {
 // @Security ApiKeyAuth
 // @Success 200 {object} schema.OutMessageBodyParam
 // @Router /api/v1/queue/messages [post]
-func (s *Sender) PublishMessage(c echo.Context) (err error) {
+func (s *Sender) PublishMessage(c *gin.Context) {
 	var req utils.MessageRequest
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Publish: Bad request: ", err)
-		return c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
 	}
 
-	validator := validator.New()
-	if err = validator.Validate(req); err != nil {
+	validate := validator.New()
+	if err := validate.Validate(req); err != nil {
 		logger.Error("Publish: Bad request: ", err)
-		return c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
 	}
 
 	message, err := s.parseMessage(c, req)
 	if err != nil {
 		logger.Error("Publish: Bad request: ", err)
-		return c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
 	}
 
 	err = s.pub.Publish(message, true)
 	if err != nil {
 		logger.Error("Publish: Bad request: ", err)
-		return c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
 	}
 
-	return c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
+	c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
 }
 
-func (s *Sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
+func (s *Sender) parseMessage(c *gin.Context, msgRequest utils.MessageRequest) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &msgRequest)
@@ -70,6 +71,6 @@ func (s *Sender) parseMessage(c echo.Context, msgRequest utils.MessageRequest) (
 	return &message, nil
 }
 
-func (s *Sender) getAPIKey(c echo.Context) string {
-	return c.Request().Header.Get("X-Api-Key")
+func (s *Sender) getAPIKey(c *gin.Context) string {
+	return c.Request.Header.Get("X-Api-Key")
 }
