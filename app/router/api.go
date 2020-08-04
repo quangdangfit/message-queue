@@ -1,13 +1,13 @@
 package router
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
 	"gomq/app/api"
 )
 
-func RegisterAPI(e *echo.Echo, container *dig.Container) error {
+func RegisterAPI(e *gin.Engine, container *dig.Container) error {
 	err := container.Invoke(func(
 		sender *api.Sender,
 	) error {

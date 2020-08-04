@@ -15,6 +15,10 @@ mode: # 0: run publisher and consumer, 1: run publisher, 2: run consumer
 
 #### Startup
 * Run: `go run -mod=vendor gomq/main.go`
+* Document at: http://localhost:8080/swagger/index.html
+
+![](https://i.imgur.com/1Q4RkSu.png)
+
 * Publish message:
 ```
 curl --location --request POST 'localhost:8080/api/v1/queue/messages' \

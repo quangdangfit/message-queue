@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,16 +18,16 @@ func main() {
 	// Build DIG container
 	container := app.BuildContainer()
 
-	//Init serv
+	//Init server
 	e := router.Initialize(container)
 
 	// Start by mode
 	if config.Config.Mode == 0 || config.Config.Mode == 1 {
 		go func() {
 			port := "8080"
-			logger.Info("Starting at port: " + port)
-			err := e.Start(":" + port)
-			if err != nil {
+			logger.Info("Listening at port: " + port)
+			err := e.Run(":" + port)
+			if err != nil && err != http.ErrServerClosed {
 				logger.Error(err)
 			}
 		}()
