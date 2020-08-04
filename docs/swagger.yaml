@@ -1,15 +1,16 @@
 definitions:
   schema.OutMessageBodyParam:
     properties:
-      headers:
-        type: string
       origin_code:
+        example: code
         type: string
       origin_model:
+        example: model
         type: string
       payload:
         type: object
       routing_key:
+        example: routing.key
         type: string
     required:
     - payload
@@ -21,11 +22,25 @@ info:
 paths:
   /api/v1/queue/messages:
     post:
+      consumes:
+      - application/json
+      description: api publish message
+      parameters:
+      - description: Body
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OutMessageBodyParam'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
           schema:
             $ref: '#/definitions/schema.OutMessageBodyParam'
       security:

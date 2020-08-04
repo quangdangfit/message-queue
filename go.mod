@@ -16,6 +16,8 @@ require (
 	github.com/quangdangfit/gosdk v1.0.8
 	github.com/spf13/viper v1.7.0
 	github.com/streadway/amqp v1.0.0
+	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
+	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
 	go.uber.org/dig v1.10.0
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect

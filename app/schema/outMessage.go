@@ -1,7 +1,5 @@
 package schema
 
-import "net/http"
-
 type OutMessageQueryParam struct {
 	RoutingKey  string `json:"routing_key,omitempty"`
 	OriginCode  string `json:"origin_code,omitempty"`
@@ -10,9 +8,8 @@ type OutMessageQueryParam struct {
 }
 
 type OutMessageBodyParam struct {
-	RoutingKey  string      `json:"routing_key,omitempty" validate:"required"`
+	RoutingKey  string      `json:"routing_key,omitempty" validate:"required" example:"routing.key"`
 	Payload     interface{} `json:"payload,omitempty" validate:"required"`
-	OriginCode  string      `json:"origin_code,omitempty"`
-	OriginModel string      `json:"origin_model,omitempty"`
-	Headers     http.Header `json:"headers,omitempty"`
+	OriginCode  string      `json:"origin_code,omitempty" example:"code"`
+	OriginModel string      `json:"origin_model,omitempty" example:"model"`
 }

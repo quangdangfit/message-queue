@@ -32,15 +32,36 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
+                "description": "api publish message",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "summary": "publish message to amqp",
+                "parameters": [
+                    {
+                        "description": "Body",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.OutMessageBodyParam"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/schema.OutMessageBodyParam"
+                        },
+                        "headers": {
+                            "Token": {
+                                "type": "string",
+                                "description": "qwerty"
+                            }
                         }
                     }
                 }
@@ -55,20 +76,20 @@ var doc = `{
                 "routing_key"
             ],
             "properties": {
-                "headers": {
-                    "type": "string"
-                },
                 "origin_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "code"
                 },
                 "origin_model": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "model"
                 },
                 "payload": {
                     "type": "object"
                 },
                 "routing_key": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "routing.key"
                 }
             }
         }

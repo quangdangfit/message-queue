@@ -4,8 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"go.uber.org/dig"
-
-	_ "gomq/docs"
 )
 
 func Initialize(container *dig.Container) *gin.Engine {
@@ -20,7 +18,7 @@ func Initialize(container *dig.Container) *gin.Engine {
 		logger.Error("Failed to register Cron API: ", err)
 	}
 
-	//app.GET("/swagger/*", echoSwagger.WrapHandler)
+	RegisterDocs(app)
 
 	return app
 }
