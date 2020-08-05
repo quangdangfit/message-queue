@@ -1,50 +1,57 @@
 package services
 
 import (
+	"context"
+
 	"github.com/quangdangfit/gosdk/utils/logger"
 
 	"gomq/app/models"
+	"gomq/app/queue"
 	"gomq/app/repositories"
 	"gomq/app/schema"
 )
 
 type outService struct {
+	pub  queue.Publisher
 	repo repositories.OutMessageRepository
 }
 
-func NewOutMessageService(repo repositories.OutMessageRepository) OutMessageService {
+func NewOutMessageService(pub queue.Publisher, repo repositories.OutMessageRepository) OutMessageService {
 	return &outService{
+		pub:  pub,
 		repo: repo,
 	}
 }
 
-func (h *outService) HandleMessage(message *models.OutMessage) (err error) {
-	msg, err := h.repo.GetOutMessageByID(message.ID)
-	if msg != nil {
-		err = h.repo.UpdateOutMessage(message)
-		if err != nil {
-			logger.Errorf("[Handle OutMsg] Failed to update msg %s, %s", message.ID, err)
-			return err
-		}
-
-		logger.Infof("[Handle OutMsg] Updated msg %s", message.ID)
-		return nil
+func (o *outService) Publish(ctx context.Context, message *models.OutMessage) error {
+	err := o.pub.Publish(message, true)
+	if err != nil {
+		logger.Errorf("Failed to publish msg %s, %s", message.ID, err)
 	}
 
-	err = h.repo.AddOutMessage(message)
+	err = o.repo.AddOutMessage(message)
 	if err != nil {
-		logger.Errorf("[Handle OutMsg] Failed to insert msg %s, %s", message.ID, err)
+		logger.Errorf("Failed to create out msg %s", message.ID)
 		return err
 	}
-	logger.Infof("[Handle OutMsg] Inserted msg %s", message.ID)
 	return nil
 }
 
-func (o *outService) GetOutMessages(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error) {
-	msg, err := o.repo.GetOutMessages(query, limit)
-	if err != nil {
-		return nil, err
+func (o *outService) CronResend(limit int) error {
+	query := schema.OutMessageQueryParam{
+		Status: models.OutMessageStatusWait,
+	}
+	messages, _ := o.repo.GetOutMessages(&query, limit)
+	if messages == nil {
+		logger.Info("[Resend Message] Not found any wait message!")
+		return nil
 	}
 
-	return msg, nil
+	logger.Infof("[Resend Message] Found %d wait messages!", len(*messages))
+	for _, msg := range *messages {
+		o.pub.Publish(&msg, true)
+	}
+	logger.Info("[Resend Message] Finish!")
+
+	return nil
 }

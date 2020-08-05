@@ -17,8 +17,9 @@ const (
 )
 
 type Cron struct {
-	inService services.InMessageService
-	pub       queue.Publisher
+	inService  services.InMessageService
+	outService services.OutMessageService
+	pub        queue.Publisher
 }
 
 func NewCron(service services.InMessageService, publisher queue.Publisher) *Cron {
@@ -31,7 +32,7 @@ func NewCron(service services.InMessageService, publisher queue.Publisher) *Cron
 func (cron *Cron) Resend(c *gin.Context) {
 	logger.Info("Start cronjob resend wait messages")
 
-	go cron.pub.CronResend(ResendOutMessageLimit)
+	go cron.outService.CronResend(ResendOutMessageLimit)
 	c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
 }
 

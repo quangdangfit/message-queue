@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	CollectionOutMessage = "out_message"
+	CollectionOutMessage = "out_messages"
 
 	OutMessageStatusWait     = "wait"
 	OutMessageStatusSent     = "sent"

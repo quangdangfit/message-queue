@@ -9,8 +9,8 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 
 	"gomq/app"
-	"gomq/app/queue"
 	"gomq/app/router"
+	"gomq/app/services"
 	"gomq/config"
 )
 
@@ -35,9 +35,9 @@ func main() {
 
 	if config.Config.Mode == 0 || config.Config.Mode == 2 {
 		container.Invoke(func(
-			consumer queue.Consumer,
+			inService services.InMessageService,
 		) {
-			go consumer.RunConsumer(nil)
+			go inService.Consume()
 		})
 	}
 
