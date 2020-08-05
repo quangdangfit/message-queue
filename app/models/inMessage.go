@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	CollectionInMessage = "in_message"
+	CollectionInMessage = "in_messages"
 
 	InMessageStatusReceived    = "received"
 	InMessageStatusSuccess     = "success"

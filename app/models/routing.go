@@ -1,7 +1,7 @@
 package models
 
 const (
-	CollectionRoutingKey = "routing_key"
+	CollectionRoutingKey = "routing_keys"
 )
 
 type RoutingKey struct {

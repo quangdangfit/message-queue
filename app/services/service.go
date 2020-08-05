@@ -8,9 +8,10 @@ import (
 )
 
 type InMessageService interface {
-	HandleMessage(message *models.InMessage, routingKey string) error
+	Consume()
 	CronRetry(limit int) error
 	CronRetryPrevious(limit int) error
+	handle(message *models.InMessage, routingKey string) error
 	storeMessage(message *models.InMessage) (err error)
 	callAPI(message *models.InMessage) (*http.Response, error)
 }

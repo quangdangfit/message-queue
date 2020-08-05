@@ -87,16 +87,13 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 	}
 
 	if confirms != nil {
-		defer func() {
-			pub.confirmOne(message, confirms)
-		}()
+		defer pub.confirmOne(message, confirms)
 	}
 
 	return nil
 }
 
-func (pub *publisher) confirmOne(message *models.OutMessage,
-	confirms <-chan amqp.Confirmation) bool {
+func (pub *publisher) confirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool {
 
 	confirmed := <-confirms
 	if confirmed.Ack {

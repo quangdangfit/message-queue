@@ -13,6 +13,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"gomq/app/models"
+	"gomq/app/queue"
 	"gomq/app/repositories"
 	"gomq/app/schema"
 	"gomq/utils"
@@ -24,22 +25,116 @@ const (
 )
 
 type inService struct {
+	cons        queue.Consumer
 	inMsgRepo   repositories.InMessageRepository
 	routingRepo repositories.RoutingRepository
 }
 
-func NewInMessageService(inMsgRepo repositories.InMessageRepository, routingRepo repositories.RoutingRepository) InMessageService {
+func NewInMessageService(cons queue.Consumer,
+	inMsgRepo repositories.InMessageRepository,
+	routingRepo repositories.RoutingRepository) InMessageService {
+
 	r := inService{
+		cons:        cons,
 		inMsgRepo:   inMsgRepo,
 		routingRepo: routingRepo,
 	}
 	return &r
 }
 
-func (i *inService) HandleMessage(message *models.InMessage, routingKey string) error {
+func (i *inService) Consume() {
+	msgChan := i.cons.GetMessageChannel()
+	i.cons.RunConsumer(nil)
 
-	defer i.storeMessage(message)
+	time.Sleep(10 * time.Second)
 
+	for index := 0; index <= i.cons.GetThreadsNumber(); index++ {
+		for msg := range msgChan {
+			i.handle(msg, msg.RoutingKey.Name)
+			i.inMsgRepo.AddInMessage(msg)
+		}
+	}
+}
+
+func (i *inService) CronRetry(limit int) error {
+	query := schema.InMessageQueryParam{
+		Status: models.InMessageStatusWaitRetry,
+	}
+
+	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
+	if messages == nil {
+		logger.Info("[Retry Message] Not found any wait_retry message!")
+		return nil
+	}
+
+	logger.Infof("[Retry Message] Found %d wait_retry messages!", len(*messages))
+	for _, msg := range *messages {
+		err := i.handle(&msg, msg.RoutingKey.Name)
+		if err == nil {
+			continue
+		}
+
+		msg.Attempts += 1
+		if msg.Attempts >= i.getMaxRetryTimes() {
+			msg.Status = models.InMessageStatusFailed
+		}
+		err = i.inMsgRepo.UpdateInMessage(&msg)
+		if err != nil {
+			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s",
+				msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
+		}
+	}
+	logger.Info("[Retry Message] Finish!")
+
+	return nil
+}
+
+func (i *inService) CronRetryPrevious(limit int) error {
+	query := schema.InMessageQueryParam{
+		Status: models.InMessageStatusWaitPrevMsg,
+	}
+	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
+	if messages == nil {
+		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
+		return nil
+	}
+
+	logger.Infof("[Retry Prev Message] Found %d wait_prev messages!", len(*messages))
+	for _, msg := range *messages {
+		query := schema.InMessageQueryParam{
+			RoutingGroup: msg.RoutingKey.Group,
+			RoutingValue: msg.RoutingKey.Value - 1,
+		}
+		prevMsg, err := i.inMsgRepo.GetSingleInMessage(&query)
+		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
+			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
+				prevMsg.Status != models.InMessageStatusCanceled) {
+
+			logger.Infof("[Retry Prev Message] Ignore message %s!", msg.ID)
+			continue
+		}
+
+		err = i.handle(&msg, msg.RoutingKey.Name)
+		if err == nil {
+			continue
+		}
+
+		msg.Attempts += 1
+		if msg.Attempts >= i.getMaxRetryTimes() {
+			msg.Status = models.InMessageStatusFailed
+		}
+		err = i.inMsgRepo.UpdateInMessage(&msg)
+		if err != nil {
+			logger.Errorf("Sent, failed to update status: %s, %s, %s, "+
+				"error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
+		}
+	}
+	logger.Info("[Retry Prev Message] Finish!")
+
+	return nil
+}
+
+func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	query := bson.M{"name": routingKey}
 	inRoutingKey, err := i.routingRepo.GetRoutingKey(query)
 	if err != nil {
@@ -126,84 +221,6 @@ func (i *inService) getPreviousMessage(message models.InMessage, routingKey stri
 		RoutingKey:  routingKey,
 	}
 	return i.inMsgRepo.GetSingleInMessage(&query)
-}
-
-func (i *inService) CronRetry(limit int) error {
-	query := schema.InMessageQueryParam{
-		Status: models.InMessageStatusWaitRetry,
-	}
-
-	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
-	if messages == nil {
-		logger.Info("[Retry Message] Not found any wait_retry message!")
-		return nil
-	}
-
-	logger.Infof("[Retry Message] Found %d wait_retry messages!", len(*messages))
-	for _, msg := range *messages {
-		err := i.HandleMessage(&msg, msg.RoutingKey.Name)
-		if err == nil {
-			continue
-		}
-
-		msg.Attempts += 1
-		if msg.Attempts >= i.getMaxRetryTimes() {
-			msg.Status = models.InMessageStatusFailed
-		}
-		err = i.inMsgRepo.UpdateInMessage(&msg)
-		if err != nil {
-			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s",
-				msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
-		}
-	}
-	logger.Info("[Retry Message] Finish!")
-
-	return nil
-}
-
-func (i *inService) CronRetryPrevious(limit int) error {
-	query := schema.InMessageQueryParam{
-		Status: models.InMessageStatusWaitPrevMsg,
-	}
-	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
-	if messages == nil {
-		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
-		return nil
-	}
-
-	logger.Infof("[Retry Prev Message] Found %d wait_prev messages!", len(*messages))
-	for _, msg := range *messages {
-		query := schema.InMessageQueryParam{
-			RoutingGroup: msg.RoutingKey.Group,
-			RoutingValue: msg.RoutingKey.Value - 1,
-		}
-		prevMsg, err := i.inMsgRepo.GetSingleInMessage(&query)
-		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
-			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
-				prevMsg.Status != models.InMessageStatusCanceled) {
-
-			logger.Infof("[Retry Prev Message] Ignore message %s!", msg.ID)
-			continue
-		}
-
-		err = i.HandleMessage(&msg, msg.RoutingKey.Name)
-		if err == nil {
-			continue
-		}
-
-		msg.Attempts += 1
-		if msg.Attempts >= i.getMaxRetryTimes() {
-			msg.Status = models.InMessageStatusFailed
-		}
-		err = i.inMsgRepo.UpdateInMessage(&msg)
-		if err != nil {
-			logger.Errorf("Sent, failed to update status: %s, %s, %s, "+
-				"error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
-		}
-	}
-	logger.Info("[Retry Prev Message] Finish!")
-
-	return nil
 }
 
 func (i *inService) getMaxRetryTimes() uint {

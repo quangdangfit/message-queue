@@ -50,7 +50,7 @@ func (i *inMessageRepo) GetSingleInMessage(query *schema.InMessageQueryParam) (*
 }
 
 func (i *inMessageRepo) GetInMessages(query *schema.InMessageQueryParam, limit int) (*[]models.InMessage, error) {
-	message := []models.InMessage{}
+	var message []models.InMessage
 
 	var mapQuery map[string]interface{}
 	data, err := bson.Marshal(query)
@@ -74,7 +74,7 @@ func (i *inMessageRepo) AddInMessage(message *models.InMessage) error {
 	message.Attempts = 0
 
 	var value map[string]interface{}
-	data, err := json.Marshal(value)
+	data, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
@@ -88,10 +88,10 @@ func (i *inMessageRepo) AddInMessage(message *models.InMessage) error {
 }
 
 func (i *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
+	message.UpdatedTime = time.Now()
 	selector := bson.M{"id": message.ID}
 
 	var payload map[string]interface{}
-	message.UpdatedTime = time.Now()
 	data, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -108,11 +108,7 @@ func (i *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
 }
 
 func (i *inMessageRepo) UpsertInMessage(message *models.InMessage) error {
-	msg, err := i.GetInMessageByID(message.ID)
-	if err != nil {
-		return err
-	}
-
+	msg, _ := i.GetInMessageByID(message.ID)
 	if msg != nil {
 		return i.UpdateInMessage(message)
 	}
