@@ -3,7 +3,6 @@ package queue
 import (
 	"encoding/json"
 	"errors"
-	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -20,15 +19,13 @@ const (
 )
 
 type Consumer interface {
-	RunConsumer(handler func([]byte) bool)
+	Consume(handler func([]byte) bool) chan *models.InMessage
 	GetMessageChannel() chan *models.InMessage
-	GetThreadsNumber() int
 	getHeaderKey(msg amqp.Delivery, key string) string
 	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
 	subscribe() (<-chan amqp.Delivery, error)
 	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool)
-	consume(deliveries <-chan amqp.Delivery)
 	pushToMsgChan(msg amqp.Delivery)
 }
 
@@ -78,39 +75,26 @@ func NewConsumer() Consumer {
 	return &sub
 }
 
-func maxParallelism() int {
-	maxProcs := runtime.GOMAXPROCS(0)
-	numCPU := runtime.NumCPU()
-	if maxProcs < numCPU {
-		return maxProcs
-	}
-	return numCPU
-
+func (c *consumer) Consume(handler func([]byte) bool) chan *models.InMessage {
+	c.ensureConnection()
+	c.newChannel()
+	deliveries, _ := c.subscribe()
+	go c.startConsuming(deliveries, handler)
+	return c.msgChan
 }
 
-func (cons *consumer) RunConsumer(handler func([]byte) bool) {
-	cons.ensureConnection()
-	cons.newChannel()
-	deliveries, _ := cons.subscribe()
-	cons.startConsuming(deliveries, handler)
+func (c *consumer) GetMessageChannel() chan *models.InMessage {
+	return c.msgChan
 }
 
-func (cons *consumer) GetMessageChannel() chan *models.InMessage {
-	return cons.msgChan
-}
-
-func (cons *consumer) GetThreadsNumber() int {
-	return cons.threads
-}
-
-func (cons *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
+func (c *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
 	if msg.Headers[key] != nil {
 		return msg.Headers[key].(string)
 	}
 	return ""
 }
 
-func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
+func (c *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
 	*models.InMessage, error) {
 
 	var payload interface{}
@@ -119,25 +103,25 @@ func (cons *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
 		Payload:     payload,
 		OriginCode:  msg.Headers["origin_code"].(string),
 		OriginModel: msg.Headers["origin_model"].(string),
-		APIKey:      cons.getHeaderKey(msg, "api_key"),
+		APIKey:      c.getHeaderKey(msg, "api_key"),
 	}
 	message.RoutingKey.Name = msg.RoutingKey
 	return &message, nil
 }
 
-func (cons *consumer) convertMessage(bytesMsg []byte, payload interface{}) error {
+func (c *consumer) convertMessage(bytesMsg []byte, payload interface{}) error {
 	json.Unmarshal(bytesMsg, &payload)
 	return nil
 }
 
-func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
-	cons.closeConnection()
+func (c *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
+	c.closeConnection()
 	time.Sleep(time.Duration(TimeoutRetry) * time.Second)
 	logger.Info("Try reConnect with times:", retryTime)
 
-	cons.ensureConnection()
+	c.ensureConnection()
 
-	deliveries, err := cons.subscribe()
+	deliveries, err := c.subscribe()
 	if err != nil {
 		return deliveries, errors.New("cannot connect")
 	}
@@ -145,24 +129,24 @@ func (cons *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
 }
 
 // subscribe sets the queue that will be listened to for this connection
-func (cons *consumer) subscribe() (<-chan amqp.Delivery, error) {
-	err := cons.channel.Qos(50, 0, false)
+func (c *consumer) subscribe() (<-chan amqp.Delivery, error) {
+	err := c.channel.Qos(50, 0, false)
 	if err != nil {
 		logger.Error("Error setting qos: ", err)
 		return nil, err
 	}
 
 	logger.Info("Queue bound to Exchange, starting Consume consumer tag:",
-		cons.consumerTag)
+		c.consumerTag)
 
-	deliveries, err := cons.channel.Consume(
-		cons.config.QueueName, // name
-		cons.consumerTag,      // consumerTag,
-		false,                 // noAck
-		false,                 // exclusive
-		false,                 // noLocal
-		false,                 // noWait
-		nil,                   // arguments
+	deliveries, err := c.channel.Consume(
+		c.config.QueueName, // name
+		c.consumerTag,      // consumerTag,
+		false,              // noAck
+		false,              // exclusive
+		false,              // noLocal
+		false,              // noWait
+		nil,                // arguments
 	)
 	if err != nil {
 		logger.Error("Failed to consume queue: ", err)
@@ -171,31 +155,24 @@ func (cons *consumer) subscribe() (<-chan amqp.Delivery, error) {
 	return deliveries, nil
 }
 
-func (cons *consumer) startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool) {
-	logger.Info("Enter for busy loop with threads: ", cons.threads)
-	for i := 0; i < cons.threads; i++ {
-		go cons.consume(deliveries)
-	}
-}
-
-func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
-	logger.Info("Enter go with thread with deliveries ", deliveries)
+func (c *consumer) startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool) {
+	logger.Info("Enter with deliveries ", deliveries)
 	for msg := range deliveries {
 		logger.Info("Enter deliver")
 		ret := false
 		try.This(func() {
-			cons.pushToMsgChan(msg)
+			c.pushToMsgChan(msg)
 		}).Finally(func() {
 			if ret == true {
 				msg.Ack(false)
 				currentTime := time.Now().Unix()
-				if currentTime-cons.lastRecoverTime > RecoverIntervalTime &&
-					!cons.currentStatus.Load().(bool) {
+				if currentTime-c.lastRecoverTime > RecoverIntervalTime &&
+					!c.currentStatus.Load().(bool) {
 
 					logger.Info("Try to Recover Unack Messages!")
-					cons.currentStatus.Store(true)
-					cons.lastRecoverTime = currentTime
-					cons.channel.Recover(true)
+					c.currentStatus.Store(true)
+					c.lastRecoverTime = currentTime
+					c.channel.Recover(true)
 				}
 
 			} else {
@@ -204,7 +181,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 				//add [retry-ttl] in header.
 				//msg.Nack(false, true)
 				msg.Reject(false)
-				//cons.currentStatus.Store(true)
+				//c.currentStatus.Store(true)
 			}
 		}).Catch(func(e try.E) {
 			logger.Error(e)
@@ -212,7 +189,7 @@ func (cons *consumer) consume(deliveries <-chan amqp.Delivery) {
 	}
 }
 
-func (cons *consumer) pushToMsgChan(msg amqp.Delivery) {
-	message, _ := cons.parseMessageFromDelivery(msg)
-	cons.msgChan <- message
+func (c *consumer) pushToMsgChan(msg amqp.Delivery) {
+	message, _ := c.parseMessageFromDelivery(msg)
+	c.msgChan <- message
 }

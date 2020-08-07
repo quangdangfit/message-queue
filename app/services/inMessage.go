@@ -20,35 +20,35 @@ import (
 )
 
 const (
-	RequestTimeout       = 60
-	DefaultMaxRetryTimes = 3
+	RequestTimeout         = 60
+	DefaultMaxRetryTimes   = 3
+	DefaultConsumerThreads = 10
 )
 
 type inService struct {
-	cons        queue.Consumer
 	inMsgRepo   repositories.InRepository
 	routingRepo repositories.RoutingRepository
+
+	consumer        queue.Consumer
+	consumerThreads int
 }
 
-func NewInService(cons queue.Consumer,
-	inMsgRepo repositories.InRepository,
-	routingRepo repositories.RoutingRepository) InService {
+func NewInService(inMsgRepo repositories.InRepository, routingRepo repositories.RoutingRepository,
+	consumer queue.Consumer) InService {
 
 	r := inService{
-		cons:        cons,
-		inMsgRepo:   inMsgRepo,
-		routingRepo: routingRepo,
+		inMsgRepo:       inMsgRepo,
+		routingRepo:     routingRepo,
+		consumer:        consumer,
+		consumerThreads: DefaultConsumerThreads,
 	}
 	return &r
 }
 
 func (i *inService) Consume() {
-	msgChan := i.cons.GetMessageChannel()
-	i.cons.RunConsumer(nil)
-
-	time.Sleep(10 * time.Second)
-
-	for index := 0; index <= i.cons.GetThreadsNumber(); index++ {
+	msgChan := i.consumer.Consume(nil)
+	logger.Infof("Run %d threads to consume messages", i.consumerThreads)
+	for index := 0; index <= i.consumerThreads; index++ {
 		for msg := range msgChan {
 			i.handle(msg, msg.RoutingKey.Name)
 			i.inMsgRepo.AddInMessage(msg)
