@@ -16,7 +16,7 @@ import (
 	"gomq/app/queue"
 	"gomq/app/repositories"
 	"gomq/app/schema"
-	"gomq/utils"
+	"gomq/pkg/utils"
 )
 
 const (
@@ -139,7 +139,7 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	inRoutingKey, err := i.routingRepo.GetRoutingKey(query)
 	if err != nil {
 		message.Status = models.InMessageStatusInvalid
-		message.Logs = append(message.Logs, utils.ParseLog(err))
+		message.Logs = append(message.Logs, utils.ParseLogs(err))
 		logger.Error("Cannot find routing key ", err)
 		return err
 	}
@@ -162,26 +162,26 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	res, err := i.callAPI(message)
 	if err != nil {
 		message.Status = models.InMessageStatusWaitRetry
-		message.Logs = append(message.Logs, utils.ParseLog(err))
+		message.Logs = append(message.Logs, utils.ParseLogs(err))
 		return err
 	}
 
 	if res.StatusCode == http.StatusNotFound || res.StatusCode == http.StatusUnauthorized {
 		message.Status = models.InMessageStatusWaitRetry
 		err = errors.New(fmt.Sprintf("failed to call API %s", res.Status))
-		message.Logs = append(message.Logs, utils.ParseLog(res))
+		message.Logs = append(message.Logs, utils.ParseLogs(res))
 		return err
 	}
 
 	if res.StatusCode != http.StatusOK {
 		message.Status = models.InMessageStatusWaitRetry
 		err = errors.New("failed to call API")
-		message.Logs = append(message.Logs, utils.ParseLog(res))
+		message.Logs = append(message.Logs, utils.ParseLogs(res))
 		return err
 	}
 
 	message.Status = models.InMessageStatusSuccess
-	message.Logs = append(message.Logs, utils.ParseLog(res))
+	message.Logs = append(message.Logs, utils.ParseLogs(res))
 
 	return nil
 }

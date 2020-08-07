@@ -8,7 +8,7 @@ import (
 
 	"gomq/app/models"
 	"gomq/config"
-	"gomq/utils"
+	"gomq/pkg/utils"
 )
 
 type Publisher interface {
@@ -81,7 +81,7 @@ func (pub *publisher) Publish(message *models.OutMessage, reliable bool) (
 		},
 	); err != nil {
 		message.Status = models.OutMessageStatusFailed
-		message.Logs = append(message.Logs, utils.ParseLog(err))
+		message.Logs = append(message.Logs, utils.ParseLogs(err))
 		logger.Error("Failed to publish message ", err)
 		return err
 	}
