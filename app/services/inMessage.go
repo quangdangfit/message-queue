@@ -16,39 +16,39 @@ import (
 	"gomq/app/queue"
 	"gomq/app/repositories"
 	"gomq/app/schema"
-	"gomq/utils"
+	"gomq/pkg/utils"
 )
 
 const (
-	RequestTimeout       = 60
-	DefaultMaxRetryTimes = 3
+	RequestTimeout         = 60
+	DefaultMaxRetryTimes   = 3
+	DefaultConsumerThreads = 10
 )
 
 type inService struct {
-	cons        queue.Consumer
 	inMsgRepo   repositories.InRepository
 	routingRepo repositories.RoutingRepository
+
+	consumer        queue.Consumer
+	consumerThreads int
 }
 
-func NewInService(cons queue.Consumer,
-	inMsgRepo repositories.InRepository,
-	routingRepo repositories.RoutingRepository) InService {
+func NewInService(inMsgRepo repositories.InRepository, routingRepo repositories.RoutingRepository,
+	consumer queue.Consumer) InService {
 
 	r := inService{
-		cons:        cons,
-		inMsgRepo:   inMsgRepo,
-		routingRepo: routingRepo,
+		inMsgRepo:       inMsgRepo,
+		routingRepo:     routingRepo,
+		consumer:        consumer,
+		consumerThreads: DefaultConsumerThreads,
 	}
 	return &r
 }
 
 func (i *inService) Consume() {
-	msgChan := i.cons.GetMessageChannel()
-	i.cons.RunConsumer(nil)
-
-	time.Sleep(10 * time.Second)
-
-	for index := 0; index <= i.cons.GetThreadsNumber(); index++ {
+	msgChan := i.consumer.Consume(nil)
+	logger.Infof("Run %d threads to consume messages", i.consumerThreads)
+	for index := 0; index <= i.consumerThreads; index++ {
 		for msg := range msgChan {
 			i.handle(msg, msg.RoutingKey.Name)
 			i.inMsgRepo.AddInMessage(msg)
@@ -139,7 +139,7 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	inRoutingKey, err := i.routingRepo.GetRoutingKey(query)
 	if err != nil {
 		message.Status = models.InMessageStatusInvalid
-		message.Logs = append(message.Logs, utils.ParseLog(err))
+		message.Logs = append(message.Logs, utils.ParseLogs(err))
 		logger.Error("Cannot find routing key ", err)
 		return err
 	}
@@ -162,26 +162,26 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	res, err := i.callAPI(message)
 	if err != nil {
 		message.Status = models.InMessageStatusWaitRetry
-		message.Logs = append(message.Logs, utils.ParseLog(err))
+		message.Logs = append(message.Logs, utils.ParseLogs(err))
 		return err
 	}
 
 	if res.StatusCode == http.StatusNotFound || res.StatusCode == http.StatusUnauthorized {
 		message.Status = models.InMessageStatusWaitRetry
 		err = errors.New(fmt.Sprintf("failed to call API %s", res.Status))
-		message.Logs = append(message.Logs, utils.ParseLog(res))
+		message.Logs = append(message.Logs, utils.ParseLogs(res))
 		return err
 	}
 
 	if res.StatusCode != http.StatusOK {
 		message.Status = models.InMessageStatusWaitRetry
 		err = errors.New("failed to call API")
-		message.Logs = append(message.Logs, utils.ParseLog(res))
+		message.Logs = append(message.Logs, utils.ParseLogs(res))
 		return err
 	}
 
 	message.Status = models.InMessageStatusSuccess
-	message.Logs = append(message.Logs, utils.ParseLog(res))
+	message.Logs = append(message.Logs, utils.ParseLogs(res))
 
 	return nil
 }

@@ -3,14 +3,14 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 
-	"gomq/app/models"
-	"gomq/app/services"
-	"gomq/pkg/app"
-	"gomq/utils"
-
 	"github.com/jinzhu/copier"
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/quangdangfit/gosdk/validator"
+
+	"gomq/app/models"
+	"gomq/app/schema"
+	"gomq/app/services"
+	"gomq/pkg/app"
 )
 
 type Sender struct {
@@ -33,7 +33,7 @@ func NewSender(service services.OutService) *Sender {
 // @Header 200 {string} Token "qwerty"
 // @Router /api/v1/queue/messages [post]
 func (s *Sender) PublishMessage(c *gin.Context) {
-	var req utils.MessageRequest
+	var req schema.OutMessageBodyParam
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Failed to bind body: ", err)
 		app.ResError(c, err, 400)
@@ -64,10 +64,10 @@ func (s *Sender) PublishMessage(c *gin.Context) {
 	app.ResOK(c)
 }
 
-func (s *Sender) parseMessage(c *gin.Context, msgRequest utils.MessageRequest) (
+func (s *Sender) parseMessage(c *gin.Context, body schema.OutMessageBodyParam) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
-	err := copier.Copy(&message, &msgRequest)
+	err := copier.Copy(&message, &body)
 
 	if err != nil {
 		return &message, err
