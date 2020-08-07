@@ -1,4 +1,13 @@
 definitions:
+  app.Response:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      msg:
+        type: string
+    type: object
   schema.OutMessageBodyParam:
     properties:
       origin_code:
@@ -20,6 +29,39 @@ info:
   contact: {}
   license: {}
 paths:
+  /api/v1/cron/resend:
+    post:
+      description: api resend `failed` out messages
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: api resend failed out messages
+      tags:
+      - Retry
+  /api/v1/cron/retry:
+    post:
+      description: api resend `wait retry` in messages, message will change status to
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: api retry `wait retry` in messages
+      tags:
+      - Retry
+  /api/v1/cron/retry_previous:
+    post:
+      description: api resend `wait retry previous` in messages, just retry in messages
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: api retry `wait retry previous` in messages
+      tags:
+      - Retry
   /api/v1/queue/messages:
     post:
       consumes:
@@ -42,7 +84,7 @@ paths:
               description: qwerty
               type: string
           schema:
-            $ref: '#/definitions/schema.OutMessageBodyParam'
+            $ref: '#/definitions/app.Response'
       security:
       - ApiKeyAuth: []
       summary: publish message to amqp
