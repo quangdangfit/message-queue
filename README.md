@@ -1,5 +1,5 @@
 # Message Queue Service
-### Golang, Echo, AMQP, MongDB
+### Golang, Gin, AMQP, MongDB
 
 #### Setup
 * Create config file: `cp config/config.sample.yaml config/config.yaml`
@@ -14,10 +14,10 @@ mode: # 0: run publisher and consumer, 1: run publisher, 2: run consumer
 * Install require packages: `go mod vendor`
 
 #### Startup
-* Run: `go run -mod=vendor gomq/main.go`
+* Run: `go run -mod=vendor main.go`
 * Document at: http://localhost:8080/swagger/index.html
 
-![](https://i.imgur.com/4qewM7a.png)
+![](https://i.imgur.com/mDqajOH.png)
 
 * Publish message:
 ```
@@ -53,16 +53,18 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 │   ├── models          # Models
 │   ├── queue           # AMQP Layer
 │   ├── repositories    # Repositories Layer
-│   ├── router  
-│   │   └── v1          # Router api v1  
+│   ├── router          # Router api v1  
 │   ├── schema          # Sechemas  
 │   ├── services        # Business Logic Layer  
-│   └── utils           # Utilities  
-├── config              # Config's files  
+├── config              # Config's files 
+├── docs                # Swagger API document
+├── pkg                 # Common packages
+│   ├── app         # App's packages
+│   └── utils       # Utilities
 ```
 
 #### 📙 Libraries
-- [Echo Framework](https://echo.labstack.com/)
+- [Gin Framework](https://godoc.org/github.com/gin-gonic/gin)
 - [AMQP Package](https://godoc.org/github.com/streadway/amqp)
 
 #### Contributing
