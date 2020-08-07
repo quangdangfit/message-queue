@@ -20,7 +20,6 @@ const (
 
 type Consumer interface {
 	Consume(handler func([]byte) bool) chan *models.InMessage
-	GetMessageChannel() chan *models.InMessage
 	getHeaderKey(msg amqp.Delivery, key string) string
 	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
@@ -40,6 +39,7 @@ type consumer struct {
 
 	threads int
 	msgChan chan *models.InMessage
+	errChan chan amqp.Delivery
 }
 
 func NewConsumer() Consumer {
@@ -83,10 +83,6 @@ func (c *consumer) Consume(handler func([]byte) bool) chan *models.InMessage {
 	return c.msgChan
 }
 
-func (c *consumer) GetMessageChannel() chan *models.InMessage {
-	return c.msgChan
-}
-
 func (c *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
 	if msg.Headers[key] != nil {
 		return msg.Headers[key].(string)
@@ -107,11 +103,6 @@ func (c *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
 	}
 	message.RoutingKey.Name = msg.RoutingKey
 	return &message, nil
-}
-
-func (c *consumer) convertMessage(bytesMsg []byte, payload interface{}) error {
-	json.Unmarshal(bytesMsg, &payload)
-	return nil
 }
 
 func (c *consumer) reconnect(retryTime int) (<-chan amqp.Delivery, error) {
@@ -190,6 +181,10 @@ func (c *consumer) startConsuming(deliveries <-chan amqp.Delivery, fn func([]byt
 }
 
 func (c *consumer) pushToMsgChan(msg amqp.Delivery) {
-	message, _ := c.parseMessageFromDelivery(msg)
+	message, err := c.parseMessageFromDelivery(msg)
+	if err != nil {
+		c.errChan <- msg
+	}
+
 	c.msgChan <- message
 }
