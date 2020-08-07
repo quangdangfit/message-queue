@@ -26,12 +26,12 @@ const (
 
 type inService struct {
 	cons        queue.Consumer
-	inMsgRepo   repositories.InMessageRepository
+	inMsgRepo   repositories.InRepository
 	routingRepo repositories.RoutingRepository
 }
 
 func NewInService(cons queue.Consumer,
-	inMsgRepo repositories.InMessageRepository,
+	inMsgRepo repositories.InRepository,
 	routingRepo repositories.RoutingRepository) InService {
 
 	r := inService{

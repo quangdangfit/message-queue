@@ -15,7 +15,7 @@ type outMessageRepo struct {
 	db dbs.IDatabase
 }
 
-func NewOutMessageRepository(db dbs.IDatabase) OutMessageRepository {
+func NewOutRepository(db dbs.IDatabase) OutRepository {
 	return &outMessageRepo{db: db}
 }
 

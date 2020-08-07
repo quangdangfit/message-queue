@@ -16,7 +16,7 @@ type inMessageRepo struct {
 	db dbs.IDatabase
 }
 
-func NewInMessageRepository(db dbs.IDatabase) InMessageRepository {
+func NewInRepository(db dbs.IDatabase) InRepository {
 	return &inMessageRepo{db: db}
 }
 
