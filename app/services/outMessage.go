@@ -16,7 +16,7 @@ type outService struct {
 	repo repositories.OutMessageRepository
 }
 
-func NewOutMessageService(pub queue.Publisher, repo repositories.OutMessageRepository) OutMessageService {
+func NewOutService(pub queue.Publisher, repo repositories.OutMessageRepository) OutService {
 	return &outService{
 		pub:  pub,
 		repo: repo,

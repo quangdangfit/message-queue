@@ -15,16 +15,17 @@ import (
 )
 
 type Sender struct {
-	service services.OutMessageService
+	service services.OutService
 }
 
-func NewSender(service services.OutMessageService) *Sender {
+func NewSender(service services.OutService) *Sender {
 	return &Sender{service: service}
 }
 
 // PublishMessage godoc
+// @Tags Out Messages
 // @Summary publish message to amqp
-// @Description api publish message
+// @Description api publish out message to amqp
 // @Accept  json
 // @Produce json
 // @Param Body body schema.OutMessageBodyParam true "Body"

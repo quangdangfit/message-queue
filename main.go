@@ -35,7 +35,7 @@ func main() {
 
 	if config.Config.Mode == 0 || config.Config.Mode == 2 {
 		container.Invoke(func(
-			inService services.InMessageService,
+			inService services.InService,
 		) {
 			go inService.Consume()
 		})

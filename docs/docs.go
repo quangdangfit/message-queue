@@ -32,12 +32,15 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "api publish message",
+                "description": "api publish out message to amqp",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Out Messages"
                 ],
                 "summary": "publish message to amqp",
                 "parameters": [

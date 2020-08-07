@@ -17,12 +17,12 @@ const (
 )
 
 type Cron struct {
-	inService  services.InMessageService
-	outService services.OutMessageService
+	inService  services.InService
+	outService services.OutService
 	pub        queue.Publisher
 }
 
-func NewCron(service services.InMessageService, publisher queue.Publisher) *Cron {
+func NewCron(service services.InService, publisher queue.Publisher) *Cron {
 	return &Cron{
 		inService: service,
 		pub:       publisher,

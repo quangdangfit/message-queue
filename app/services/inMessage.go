@@ -30,9 +30,9 @@ type inService struct {
 	routingRepo repositories.RoutingRepository
 }
 
-func NewInMessageService(cons queue.Consumer,
+func NewInService(cons queue.Consumer,
 	inMsgRepo repositories.InMessageRepository,
-	routingRepo repositories.RoutingRepository) InMessageService {
+	routingRepo repositories.RoutingRepository) InService {
 
 	r := inService{
 		cons:        cons,

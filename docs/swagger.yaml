@@ -24,7 +24,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: api publish message
+      description: api publish out message to amqp
       parameters:
       - description: Body
         in: body
@@ -46,4 +46,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: publish message to amqp
+      tags:
+      - Out Messages
 swagger: "2.0"
