@@ -13,10 +13,10 @@ import (
 
 type outService struct {
 	pub  queue.Publisher
-	repo repositories.OutMessageRepository
+	repo repositories.OutRepository
 }
 
-func NewOutMessageService(pub queue.Publisher, repo repositories.OutMessageRepository) OutMessageService {
+func NewOutService(pub queue.Publisher, repo repositories.OutRepository) OutService {
 	return &outService{
 		pub:  pub,
 		repo: repo,

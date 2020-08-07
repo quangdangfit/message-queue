@@ -7,7 +7,7 @@ import (
 	"gomq/app/models"
 )
 
-type InMessageService interface {
+type InService interface {
 	Consume()
 	CronRetry(limit int) error
 	CronRetryPrevious(limit int) error
@@ -16,7 +16,7 @@ type InMessageService interface {
 	callAPI(message *models.InMessage) (*http.Response, error)
 }
 
-type OutMessageService interface {
+type OutService interface {
 	Publish(ctx context.Context, message *models.OutMessage) error
 	CronResend(limit int) error
 }

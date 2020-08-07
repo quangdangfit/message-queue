@@ -13,7 +13,7 @@ const (
 	StatusDBError      = "BD_ERROR"
 )
 
-var Res = map[string]objResponse{
+var Res = map[string]Response{
 	StatusOK:           {HttpCode: http.StatusOK, Code: StatusOK, Message: "Thành công"},
 	StatusError:        {HttpCode: http.StatusBadRequest, Code: StatusError, Message: "Có lỗi xảy ra, vui lòng thử lại"},
 	StatusUnAuthorized: {HttpCode: http.StatusUnauthorized, Code: StatusUnAuthorized, Message: "Bạn không có quyền truy cập vào hệ thống. Vui lòng liên hệ quản lý để được phân quyền."},
@@ -22,19 +22,19 @@ var Res = map[string]objResponse{
 	StatusDBError:      {HttpCode: http.StatusBadRequest, Code: StatusDBError, Message: "Hệ thống xử lý dữ liệu không thành công, vui lòng thử lại"},
 }
 
-type objResponse struct {
+type Response struct {
 	HttpCode        int    `json:"http_code"`
 	Code            string `json:"code"`
 	Message         string `json:"message"`
 	OriginalMessage string `json:"original_message,omitempty"`
 }
 
-func MsgResponse(code string, internalErr *error) objResponse {
+func MsgResponse(code string, internalErr *error) Response {
 	if _, ok := Res[code]; !ok {
 		code = StatusError
 	}
 	if internalErr != nil {
-		return objResponse{
+		return Response{
 			Res[code].HttpCode,
 			Res[code].Code,
 			Res[code].Message,

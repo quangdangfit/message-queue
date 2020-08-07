@@ -25,6 +25,57 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/cron/resend": {
+            "post": {
+                "description": "api resend ` + "`" + `failed` + "`" + ` out messages",
+                "tags": [
+                    "Retry"
+                ],
+                "summary": "api resend failed out messages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cron/retry": {
+            "post": {
+                "description": "api resend ` + "`" + `wait retry` + "`" + ` in messages, message will change status to",
+                "tags": [
+                    "Retry"
+                ],
+                "summary": "api retry ` + "`" + `wait retry` + "`" + ` in messages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cron/retry_previous": {
+            "post": {
+                "description": "api resend ` + "`" + `wait retry previous` + "`" + ` in messages, just retry in messages",
+                "tags": [
+                    "Retry"
+                ],
+                "summary": "api retry ` + "`" + `wait retry previous` + "`" + ` in messages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/queue/messages": {
             "post": {
                 "security": [
@@ -32,12 +83,15 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "api publish message",
+                "description": "api publish out message to amqp",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Out Messages"
                 ],
                 "summary": "publish message to amqp",
                 "parameters": [
@@ -55,7 +109,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/schema.OutMessageBodyParam"
+                            "$ref": "#/definitions/app.Response"
                         },
                         "headers": {
                             "Token": {
@@ -69,6 +123,20 @@ var doc = `{
         }
     },
     "definitions": {
+        "app.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object"
+                },
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
         "schema.OutMessageBodyParam": {
             "type": "object",
             "required": [

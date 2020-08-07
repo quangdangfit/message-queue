@@ -1,12 +1,11 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 
 	"gomq/app/models"
 	"gomq/app/services"
+	"gomq/pkg/app"
 	"gomq/utils"
 
 	"github.com/jinzhu/copier"
@@ -15,53 +14,54 @@ import (
 )
 
 type Sender struct {
-	service services.OutMessageService
+	service services.OutService
 }
 
-func NewSender(service services.OutMessageService) *Sender {
+func NewSender(service services.OutService) *Sender {
 	return &Sender{service: service}
 }
 
 // PublishMessage godoc
+// @Tags Out Messages
 // @Summary publish message to amqp
-// @Description api publish message
+// @Description api publish out message to amqp
 // @Accept  json
 // @Produce json
 // @Param Body body schema.OutMessageBodyParam true "Body"
 // @Security ApiKeyAuth
-// @Success 200 {object} schema.OutMessageBodyParam
+// @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
 // @Router /api/v1/queue/messages [post]
 func (s *Sender) PublishMessage(c *gin.Context) {
 	var req utils.MessageRequest
 	if err := c.Bind(&req); err != nil {
-		logger.Error("Publish: Bad request: ", err)
-		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		logger.Error("Failed to bind body: ", err)
+		app.ResError(c, err, 400)
 		return
 	}
 
 	validate := validator.New()
 	if err := validate.Validate(req); err != nil {
-		logger.Error("Publish: Bad request: ", err)
-		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		logger.Error("Body is invalid: ", err)
+		app.ResError(c, err, 400)
 		return
 	}
 
 	message, err := s.parseMessage(c, req)
 	if err != nil {
-		logger.Error("Publish: Bad request: ", err)
-		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		logger.Error("Failed to parse out message: ", err)
+		app.ResError(c, err, 400)
 		return
 	}
 
 	err = s.service.Publish(c, message)
 	if err != nil {
-		logger.Error("Publish: Bad request: ", err)
-		c.JSON(http.StatusBadRequest, utils.MsgResponse(utils.StatusBadRequest, nil))
+		logger.Error("Failed to publish message: ", err)
+		app.ResError(c, err, 400)
 		return
 	}
 
-	c.JSON(http.StatusOK, utils.MsgResponse(utils.StatusOK, nil))
+	app.ResOK(c)
 }
 
 func (s *Sender) parseMessage(c *gin.Context, msgRequest utils.MessageRequest) (

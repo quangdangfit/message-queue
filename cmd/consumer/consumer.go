@@ -10,7 +10,7 @@ func main() {
 	container := app.BuildContainer()
 
 	container.Invoke(func(
-		service services.InMessageService,
+		service services.InService,
 	) error {
 		consumer := queue.NewConsumer(service)
 		consumer.RunConsumer(nil)
