@@ -46,7 +46,7 @@ func NewInService(inMsgRepo repositories.InRepository, routingRepo repositories.
 }
 
 func (i *inService) Consume() {
-	msgChan := i.consumer.Consume(nil)
+	msgChan := i.consumer.Consume()
 	logger.Infof("Run %d threads to consume messages", i.consumerThreads)
 	for index := 0; index <= i.consumerThreads; index++ {
 		for msg := range msgChan {

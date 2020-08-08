@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/jinzhu/copier"
 	"github.com/manucorporat/try"
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
@@ -19,12 +20,11 @@ const (
 )
 
 type Consumer interface {
-	Consume(handler func([]byte) bool) chan *models.InMessage
-	getHeaderKey(msg amqp.Delivery, key string) string
+	Consume() chan *models.InMessage
 	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
 	reconnect(retryTime int) (<-chan amqp.Delivery, error)
 	subscribe() (<-chan amqp.Delivery, error)
-	startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool)
+	startConsuming(deliveries <-chan amqp.Delivery)
 	pushToMsgChan(msg amqp.Delivery)
 }
 
@@ -39,7 +39,6 @@ type consumer struct {
 
 	threads int
 	msgChan chan *models.InMessage
-	errChan chan amqp.Delivery
 }
 
 func NewConsumer() Consumer {
@@ -75,32 +74,31 @@ func NewConsumer() Consumer {
 	return &sub
 }
 
-func (c *consumer) Consume(handler func([]byte) bool) chan *models.InMessage {
+func (c *consumer) Consume() chan *models.InMessage {
 	c.ensureConnection()
 	c.newChannel()
 	deliveries, _ := c.subscribe()
-	go c.startConsuming(deliveries, handler)
+	go c.startConsuming(deliveries)
+
+	// retry consume failed messages
+	go c.startConsuming(c.failedChan)
 	return c.msgChan
 }
 
-func (c *consumer) getHeaderKey(msg amqp.Delivery, key string) string {
-	if msg.Headers[key] != nil {
-		return msg.Headers[key].(string)
-	}
-	return ""
-}
-
-func (c *consumer) parseMessageFromDelivery(msg amqp.Delivery) (
-	*models.InMessage, error) {
-
+func (c *consumer) parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error) {
 	var payload interface{}
 	json.Unmarshal(msg.Body, &payload)
-	message := models.InMessage{
-		Payload:     payload,
-		OriginCode:  msg.Headers["origin_code"].(string),
-		OriginModel: msg.Headers["origin_model"].(string),
-		APIKey:      c.getHeaderKey(msg, "api_key"),
+	var headers models.Headers
+	data, err := json.Marshal(msg.Headers)
+	if err != nil {
+		return nil, err
 	}
+	json.Unmarshal(data, &headers)
+
+	message := models.InMessage{
+		Payload: payload,
+	}
+	copier.Copy(&message, &headers)
 	message.RoutingKey.Name = msg.RoutingKey
 	return &message, nil
 }
@@ -146,10 +144,10 @@ func (c *consumer) subscribe() (<-chan amqp.Delivery, error) {
 	return deliveries, nil
 }
 
-func (c *consumer) startConsuming(deliveries <-chan amqp.Delivery, fn func([]byte) bool) {
+func (c *consumer) startConsuming(deliveries <-chan amqp.Delivery) {
 	logger.Info("Enter with deliveries ", deliveries)
 	for msg := range deliveries {
-		logger.Info("Enter deliver")
+		logger.Info("Enter deliver message: ", msg.RoutingKey)
 		ret := false
 		try.This(func() {
 			c.pushToMsgChan(msg)
@@ -183,7 +181,8 @@ func (c *consumer) startConsuming(deliveries <-chan amqp.Delivery, fn func([]byt
 func (c *consumer) pushToMsgChan(msg amqp.Delivery) {
 	message, err := c.parseMessageFromDelivery(msg)
 	if err != nil {
-		c.errChan <- msg
+		c.failedChan <- msg
+		logger.Error("Failed to parse message: ", err)
 	}
 
 	c.msgChan <- message

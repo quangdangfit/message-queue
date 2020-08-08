@@ -33,6 +33,7 @@ type messageQueue struct {
 	connection      *amqp.Connection
 	channel         *amqp.Channel
 	errorChan       chan *amqp.Error
+	failedChan      chan amqp.Delivery
 	isClosed        bool
 	channelIsClosed bool
 }
