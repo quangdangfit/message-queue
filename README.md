@@ -42,7 +42,7 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 
 
 #### Diagram
-![alt text](https://imgur.com/NXuvQLG.jpg "Repository Pattern")
+![alt text](https://i.imgur.com/KwUNR1V.png)
 
 
 #### Structure
@@ -59,13 +59,13 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 ├── config              # Config's files 
 ├── docs                # Swagger API document
 ├── pkg                 # Common packages
-│   ├── app         # App's packages
-│   └── utils       # Utilities
+│   ├── app             # App's packages
+│   └── utils           # Utilities
 ```
 
 #### 📙 Libraries
-- [Gin Framework](https://godoc.org/github.com/gin-gonic/gin)
-- [AMQP Package](https://godoc.org/github.com/streadway/amqp)
+- [Gin](https://godoc.org/github.com/gin-gonic/gin)
+- [AMQP](https://godoc.org/github.com/streadway/amqp)
 
 #### Contributing
 If you want to contribute to this boilerplate, clone the repository and just start making pull requests.
