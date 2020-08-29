@@ -16,9 +16,10 @@ func RegisterAPI(e *gin.Engine, container *dig.Container) error {
 		apiRoute.POST("/messages", sender.PublishMessage)
 
 		// Routing Keys
-		apiRoute.GET("/routing_keys/:id", routing.Retrieve)
 		apiRoute.GET("/routing_keys", routing.List)
 		apiRoute.POST("/routing_keys", routing.Create)
+		apiRoute.GET("/routing_keys/:id", routing.Retrieve)
+		apiRoute.PUT("/routing_keys/:id", routing.Update)
 
 		return nil
 	})

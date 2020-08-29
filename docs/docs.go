@@ -250,6 +250,50 @@ var doc = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "api update routing key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Routing Keys"
+                ],
+                "summary": "api update routing key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Routing Key ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Body",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.RoutingUpdateParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
             }
         }
     },
@@ -322,6 +366,26 @@ var doc = `{
         "schema.RoutingQueryParam": {
             "type": "object",
             "properties": {
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.RoutingUpdateParam": {
+            "type": "object",
+            "properties": {
+                "api_method": {
+                    "type": "string"
+                },
+                "api_url": {
+                    "type": "string"
+                },
                 "group": {
                     "type": "string"
                 },

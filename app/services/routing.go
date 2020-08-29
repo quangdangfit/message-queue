@@ -13,4 +13,5 @@ type RoutingService interface {
 	Retrieve(ctx context.Context, id string) (*models.RoutingKey, error)
 	List(ctx context.Context, query *schema.RoutingQueryParam) (*[]models.RoutingKey, *paging.Paging, error)
 	Create(ctx context.Context, body *schema.RoutingCreateParam) (*models.RoutingKey, error)
+	Update(ctx context.Context, id string, body *schema.RoutingUpdateParam) (*models.RoutingKey, error)
 }

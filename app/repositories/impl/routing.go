@@ -2,6 +2,8 @@ package impl
 
 import (
 	"encoding/json"
+	"errors"
+	"reflect"
 
 	"github.com/jinzhu/copier"
 	"github.com/quangdangfit/gosdk/utils/paging"
@@ -87,4 +89,39 @@ func (r *routing) Create(body *schema.RoutingCreateParam) (*models.RoutingKey, e
 		return nil, err
 	}
 	return &routing, nil
+}
+
+func (r *routing) Update(id string, body *schema.RoutingUpdateParam) (*models.RoutingKey, error) {
+	routing, err := r.Retrieve(id)
+	if err != nil {
+		return nil, err
+	} else if routing == nil {
+		return nil, errors.New("not found routing key")
+	}
+
+	var update models.RoutingKey
+	copier.Copy(&update, &routing)
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(data, &update)
+
+	if reflect.DeepEqual(*routing, update) {
+		return routing, nil
+	}
+
+	var value map[string]interface{}
+	data, err = json.Marshal(update)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(data, &value)
+
+	selector := bson.M{"id": routing.ID}
+	err = r.db.UpdateOne(models.CollectionRoutingKey, selector, value)
+	if err != nil {
+		return nil, err
+	}
+	return &update, nil
 }

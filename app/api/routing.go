@@ -116,3 +116,45 @@ func (r *Routing) Create(c *gin.Context) {
 
 	app.ResSuccess(c, rs)
 }
+
+// Update Routing Key godoc
+// @Tags Routing Keys
+// @Summary api update routing key
+// @Description api update routing key
+// @Accept  json
+// @Produce json
+// @Param id path string true "Routing Key ID"
+// @Param Body body schema.RoutingUpdateParam true "Body"
+// @Security ApiKeyAuth
+// @Success 200 {object} app.Response
+// @Router /api/v1/queue/routing_keys/{id} [put]
+func (r *Routing) Update(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		err := errors.New("missing routing key id")
+		logger.Error(err)
+		app.ResError(c, err, 400)
+	}
+
+	var bodyParam schema.RoutingUpdateParam
+	if err := c.Bind(&bodyParam); err != nil {
+		logger.Error("Failed to bind body: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(bodyParam); err != nil {
+		logger.Error("Body is invalid: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	rs, err := r.service.Update(c, id, &bodyParam)
+	if err != nil {
+		logger.Errorf("Failed to update routing key %s, error: %s", id, err)
+		app.ResError(c, err, 400)
+	}
+
+	app.ResSuccess(c, rs)
+}

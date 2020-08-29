@@ -51,3 +51,13 @@ func (r *routing) Create(ctx context.Context, body *schema.RoutingCreateParam) (
 
 	return rs, nil
 }
+
+func (r *routing) Update(ctx context.Context, id string, body *schema.RoutingUpdateParam) (*models.RoutingKey, error) {
+	rs, err := r.repo.Update(id, body)
+	if err != nil {
+		logger.Error("Cannot update routing key, error: ", err)
+		return nil, err
+	}
+
+	return rs, nil
+}
