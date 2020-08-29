@@ -3,6 +3,8 @@ package impl
 import (
 	"encoding/json"
 
+	"github.com/jinzhu/copier"
+	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/quangdangfit/gosdk/utils/paging"
 	"gopkg.in/mgo.v2/bson"
 
@@ -41,7 +43,7 @@ func (r *routing) GetPrevious(srcRouting models.RoutingKey) (
 	return r.Retrieve(query)
 }
 
-func (r *routing) List(query *schema.RoutingKeyQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
+func (r *routing) List(query *schema.RoutingQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
 	var routingKeys []models.RoutingKey
 
 	var mapQuery map[string]interface{}
@@ -56,4 +58,26 @@ func (r *routing) List(query *schema.RoutingKeyQueryParam) (*[]models.RoutingKey
 		return nil, nil, err
 	}
 	return &routingKeys, pageInfo, nil
+}
+
+func (r *routing) Create(body *schema.RoutingCreateParam) (*models.RoutingKey, error) {
+	var routing models.RoutingKey
+	copier.Copy(routing, body)
+	routing.BeforeCreate()
+	routing.Active = true
+
+	var value map[string]interface{}
+	data, err := json.Marshal(routing)
+	if err != nil {
+		logger.Error("Marshal fail: ", err)
+		return nil, err
+	}
+	json.Unmarshal(data, &value)
+
+	err = r.db.InsertOne(models.CollectionRoutingKey, value)
+	if err != nil {
+		logger.Error("Cannot create routing key: ", err)
+		return nil, err
+	}
+	return &routing, nil
 }
