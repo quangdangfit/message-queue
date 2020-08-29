@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"gomq/app/models"
+	"message-queue/app/models"
 )
 
 type OutService interface {

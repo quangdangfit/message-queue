@@ -8,10 +8,10 @@ import (
 
 	"github.com/quangdangfit/gosdk/utils/logger"
 
-	"gomq/app"
-	"gomq/app/router"
-	"gomq/app/services"
-	"gomq/config"
+	"message-queue/app"
+	"message-queue/app/router"
+	"message-queue/app/services"
+	"message-queue/config"
 )
 
 func main() {

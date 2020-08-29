@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
-	"gomq/app/api"
+	"message-queue/app/api"
 )
 
 func RegisterCron(e *gin.Engine, container *dig.Container) error {

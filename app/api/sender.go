@@ -7,10 +7,10 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/quangdangfit/gosdk/validator"
 
-	"gomq/app/models"
-	"gomq/app/schema"
-	"gomq/app/services"
-	"gomq/pkg/app"
+	"message-queue/app/models"
+	"message-queue/app/schema"
+	"message-queue/app/services"
+	"message-queue/pkg/app"
 )
 
 type Sender struct {

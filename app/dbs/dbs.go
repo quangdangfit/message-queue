@@ -5,8 +5,8 @@ import (
 	"github.com/quangdangfit/gosdk/database/mongo"
 	"gopkg.in/mgo.v2"
 
-	"gomq/app/models"
-	"gomq/config"
+	"message-queue/app/models"
+	"message-queue/config"
 )
 
 var Database database.Mongo

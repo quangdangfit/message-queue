@@ -5,7 +5,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"gomq/docs"
+	"message-queue/docs"
 )
 
 func RegisterDocs(e *gin.Engine) {

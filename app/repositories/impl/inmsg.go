@@ -7,10 +7,10 @@ import (
 	"github.com/google/uuid"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/app/dbs"
-	"gomq/app/models"
-	"gomq/app/repositories"
-	"gomq/app/schema"
+	"message-queue/app/dbs"
+	"message-queue/app/models"
+	"message-queue/app/repositories"
+	"message-queue/app/schema"
 )
 
 type inRepo struct {

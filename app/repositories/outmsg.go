@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"gomq/app/models"
-	"gomq/app/schema"
+	"message-queue/app/models"
+	"message-queue/app/schema"
 )
 
 type OutRepository interface {

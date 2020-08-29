@@ -5,11 +5,11 @@ import (
 
 	"github.com/quangdangfit/gosdk/utils/logger"
 
-	"gomq/app/models"
-	"gomq/app/queue"
-	"gomq/app/repositories"
-	"gomq/app/schema"
-	"gomq/app/services"
+	"message-queue/app/models"
+	"message-queue/app/queue"
+	"message-queue/app/repositories"
+	"message-queue/app/schema"
+	"message-queue/app/services"
 )
 
 type outService struct {

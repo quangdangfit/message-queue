@@ -7,7 +7,7 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
 
-	"gomq/config"
+	"message-queue/config"
 )
 
 const (

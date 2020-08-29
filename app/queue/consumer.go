@@ -11,8 +11,8 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
 
-	"gomq/app/models"
-	"gomq/config"
+	"message-queue/app/models"
+	"message-queue/config"
 )
 
 const (

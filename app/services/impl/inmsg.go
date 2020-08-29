@@ -12,12 +12,12 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2/bson"
 
-	"gomq/app/models"
-	"gomq/app/queue"
-	"gomq/app/repositories"
-	"gomq/app/schema"
-	"gomq/app/services"
-	"gomq/pkg/utils"
+	"message-queue/app/models"
+	"message-queue/app/queue"
+	"message-queue/app/repositories"
+	"message-queue/app/schema"
+	"message-queue/app/services"
+	"message-queue/pkg/utils"
 )
 
 const (

@@ -1,4 +1,4 @@
-module gomq
+module message-queue
 
 go 1.14
 

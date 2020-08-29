@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quangdangfit/gosdk/utils/logger"
 
-	"gomq/app/services"
-	"gomq/pkg/app"
+	"message-queue/app/services"
+	"message-queue/pkg/app"
 )
 
 const (

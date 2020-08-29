@@ -3,8 +3,8 @@ package repositories
 import (
 	"github.com/quangdangfit/gosdk/utils/paging"
 
-	"gomq/app/models"
-	"gomq/app/schema"
+	"message-queue/app/models"
+	"message-queue/app/schema"
 )
 
 type RoutingRepository interface {

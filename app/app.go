@@ -4,11 +4,11 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"go.uber.org/dig"
 
-	"gomq/app/api"
-	"gomq/app/dbs"
-	"gomq/app/queue"
-	repoImpl "gomq/app/repositories/impl"
-	serviceImpl "gomq/app/services/impl"
+	"message-queue/app/api"
+	"message-queue/app/dbs"
+	"message-queue/app/queue"
+	repoImpl "message-queue/app/repositories/impl"
+	serviceImpl "message-queue/app/services/impl"
 )
 
 func BuildContainer() *dig.Container {

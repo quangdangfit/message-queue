@@ -6,9 +6,9 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/streadway/amqp"
 
-	"gomq/app/models"
-	"gomq/config"
-	"gomq/pkg/utils"
+	"message-queue/app/models"
+	"message-queue/config"
+	"message-queue/pkg/utils"
 )
 
 type Publisher interface {
