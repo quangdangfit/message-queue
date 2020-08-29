@@ -38,11 +38,11 @@ func (o *outRepo) Get(query *schema.OutMsgQueryParam) (*models.OutMessage, error
 	message := models.OutMessage{}
 
 	var mapQuery map[string]interface{}
-	data, err := bson.Marshal(query)
+	data, err := json.Marshal(query)
 	if err != nil {
 		return nil, err
 	}
-	bson.Unmarshal(data, &mapQuery)
+	json.Unmarshal(data, &mapQuery)
 
 	err = o.db.FindOne(models.CollectionOutMessage, mapQuery, "-_id", &message)
 	if err != nil {
@@ -51,6 +51,7 @@ func (o *outRepo) Get(query *schema.OutMsgQueryParam) (*models.OutMessage, error
 
 	return &message, nil
 }
+
 func (o *outRepo) List(query *schema.OutMsgQueryParam) (*[]models.OutMessage, *paging.Paging, error) {
 	if query.Page <= 0 {
 		query.Page = 1
@@ -65,7 +66,7 @@ func (o *outRepo) List(query *schema.OutMsgQueryParam) (*[]models.OutMessage, *p
 	if err != nil {
 		return nil, nil, err
 	}
-	bson.Unmarshal(data, &mapQuery)
+	json.Unmarshal(data, &mapQuery)
 
 	pageInfo, err := o.db.FindManyPaging(models.CollectionOutMessage, mapQuery, "-_id", query.Page, query.Limit, &message)
 	if err != nil {
@@ -92,8 +93,8 @@ func (o *outRepo) Update(message *models.OutMessage) error {
 
 	var payload map[string]interface{}
 	message.UpdatedTime = time.Now()
-	data, _ := bson.Marshal(message)
-	bson.Unmarshal(data, &payload)
+	data, _ := json.Marshal(message)
+	json.Unmarshal(data, &payload)
 
 	change := bson.M{"$set": payload}
 	err := o.db.UpdateOne(models.CollectionOutMessage, selector, change)
