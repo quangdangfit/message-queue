@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/quangdangfit/gosdk/utils/logger"
+	"github.com/quangdangfit/gosdk/utils/paging"
 
 	"message-queue/app/models"
 	"message-queue/app/repositories"
@@ -29,6 +30,16 @@ func (r *routing) Retrieve(ctx context.Context, id string) (*models.RoutingKey, 
 	}
 
 	return rs, nil
+}
+
+func (r *routing) List(ctx context.Context, query *schema.RoutingQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
+	rs, pageInfo, err := r.repo.List(query)
+	if err != nil {
+		logger.Errorf("Cannot get list routing key, error: %s", err)
+		return nil, nil, err
+	}
+
+	return rs, pageInfo, nil
 }
 
 func (r *routing) Create(ctx context.Context, body *schema.RoutingCreateParam) (*models.RoutingKey, error) {

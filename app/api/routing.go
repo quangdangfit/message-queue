@@ -47,6 +47,40 @@ func (r *Routing) Retrieve(c *gin.Context) {
 	app.ResSuccess(c, rs)
 }
 
+// Get List Routing Keys godoc
+// @Tags Routing Keys
+// @Summary get list routing keys
+// @Description get list routing keys
+// @Accept  json
+// @Produce json
+// @Param Query query schema.RoutingQueryParam true "Query"
+// @Security ApiKeyAuth
+// @Success 200 {object} app.Response
+// @Header 200 {string} Token "qwerty"
+// @Router /api/v1/queue/routing_keys [get]
+func (r *Routing) List(c *gin.Context) {
+	var queryParam schema.RoutingQueryParam
+	if err := c.Bind(&queryParam); err != nil {
+		logger.Error("Failed to bind body: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	rs, pageInfo, err := r.service.List(c, &queryParam)
+	if err != nil {
+		logger.Error("Failed to get list routing keys: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	res := schema.ResponsePaging{
+		Data:   rs,
+		Paging: pageInfo,
+	}
+
+	app.ResSuccess(c, res)
+}
+
 // Create Routing Key godoc
 // @Tags Routing Keys
 // @Summary create routing key

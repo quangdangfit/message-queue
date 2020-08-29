@@ -44,6 +44,15 @@ definitions:
     - name
     - value
     type: object
+  schema.RoutingQueryParam:
+    properties:
+      group:
+        type: string
+      name:
+        type: string
+      value:
+        type: integer
+    type: object
 info:
   contact: {}
   license: {}
@@ -110,6 +119,36 @@ paths:
       tags:
       - Out Messages
   /api/v1/queue/routing_keys:
+    get:
+      consumes:
+      - application/json
+      description: get list routing keys
+      parameters:
+      - in: query
+        name: group
+        type: string
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: value
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/app.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: get list routing keys
+      tags:
+      - Routing Keys
     post:
       consumes:
       - application/json
