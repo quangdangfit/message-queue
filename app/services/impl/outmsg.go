@@ -12,6 +12,10 @@ import (
 	"message-queue/app/services"
 )
 
+const (
+	ResendOutMessageLimit = 100
+)
+
 type outService struct {
 	pub  queue.Publisher
 	repo repositories.OutRepository
@@ -38,11 +42,12 @@ func (o *outService) Publish(ctx context.Context, message *models.OutMessage) er
 	return nil
 }
 
-func (o *outService) CronResend(limit int) error {
+func (o *outService) CronResend() error {
 	query := schema.OutMsgQueryParam{
 		Status: models.OutMessageStatusWait,
+		Limit:  ResendOutMessageLimit,
 	}
-	messages, _ := o.repo.List(&query, limit)
+	messages, _ := o.repo.List(&query)
 	if messages == nil {
 		logger.Info("[Resend Message] Not found any wait message!")
 		return nil

@@ -8,8 +8,9 @@ import (
 )
 
 type Schema struct {
-	Mode int `mapstructure:"mode"`
-	AMQP struct {
+	Mode      int `mapstructure:"mode"`
+	PageLimit int `mapstructure:"page_limit"`
+	AMQP      struct {
 		URL             string `mapstructure:"url"`
 		Host            string `mapstructure:"host"`
 		Port            string `mapstructure:"port"`

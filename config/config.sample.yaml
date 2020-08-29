@@ -1,4 +1,5 @@
 mode: 0
+page_limit: 25
 
 mongodb:
   host: localhost:27017

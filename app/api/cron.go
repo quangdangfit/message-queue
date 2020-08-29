@@ -9,8 +9,7 @@ import (
 )
 
 const (
-	ResendOutMessageLimit = 100
-	RetryInMessageLimit   = 100
+	RetryInMessageLimit = 100
 )
 
 type Cron struct {
@@ -33,7 +32,7 @@ func NewCron(inService services.InService, outService services.OutService) *Cron
 // @Router /api/v1/cron/resend [post]
 func (cron *Cron) Resend(c *gin.Context) {
 	logger.Info("Start cronjob resend wait messages")
-	go cron.outService.CronResend(ResendOutMessageLimit)
+	go cron.outService.CronResend()
 	app.ResOK(c)
 }
 
