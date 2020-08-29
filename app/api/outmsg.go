@@ -13,15 +13,15 @@ import (
 	"message-queue/pkg/app"
 )
 
-type Sender struct {
+type OutMsg struct {
 	service services.OutService
 }
 
-func NewSender(service services.OutService) *Sender {
-	return &Sender{service: service}
+func NewSender(service services.OutService) *OutMsg {
+	return &OutMsg{service: service}
 }
 
-// PublishMessage godoc
+// Publish Message godoc
 // @Tags Out Messages
 // @Summary publish message to amqp
 // @Description api publish out message to amqp
@@ -32,7 +32,7 @@ func NewSender(service services.OutService) *Sender {
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
 // @Router /api/v1/out_messages [post]
-func (s *Sender) PublishMessage(c *gin.Context) {
+func (s *OutMsg) Publish(c *gin.Context) {
 	var req schema.OutMsgBodyParam
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Failed to bind body: ", err)
@@ -64,7 +64,7 @@ func (s *Sender) PublishMessage(c *gin.Context) {
 	app.ResOK(c)
 }
 
-func (s *Sender) parseMessage(c *gin.Context, body schema.OutMsgBodyParam) (
+func (s *OutMsg) parseMessage(c *gin.Context, body schema.OutMsgBodyParam) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &body)
@@ -78,6 +78,6 @@ func (s *Sender) parseMessage(c *gin.Context, body schema.OutMsgBodyParam) (
 	return &message, nil
 }
 
-func (s *Sender) getAPIKey(c *gin.Context) string {
+func (s *OutMsg) getAPIKey(c *gin.Context) string {
 	return c.Request.Header.Get("X-Api-Key")
 }

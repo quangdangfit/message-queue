@@ -9,11 +9,11 @@ import (
 
 func RegisterAPI(e *gin.Engine, container *dig.Container) error {
 	err := container.Invoke(func(
-		sender *api.Sender,
+		outMsg *api.OutMsg,
 		routing *api.Routing,
 	) error {
 		apiRoute := e.Group("/api/v1")
-		apiRoute.POST("/out_messages", sender.PublishMessage)
+		apiRoute.POST("/out_messages", outMsg.Publish)
 
 		// Routing Keys
 		apiRoute.GET("/routing_keys", routing.List)
