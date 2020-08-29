@@ -190,7 +190,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Out Message"
+                    "Out Messages"
                 ],
                 "summary": "api update out message",
                 "parameters": [

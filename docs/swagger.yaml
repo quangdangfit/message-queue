@@ -208,7 +208,7 @@ paths:
       - ApiKeyAuth: []
       summary: api update out message
       tags:
-      - Out Message
+      - Out Messages
   /api/v1/routing_keys:
     get:
       consumes:

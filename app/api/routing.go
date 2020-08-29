@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/quangdangfit/gosdk/utils/logger"
+	"github.com/quangdangfit/gosdk/validator"
 
 	"message-queue/app/schema"
 	"message-queue/app/services"
@@ -101,7 +101,7 @@ func (r *Routing) Create(c *gin.Context) {
 	}
 
 	validate := validator.New()
-	if err := validate.Struct(bodyParam); err != nil {
+	if err := validate.Validate(bodyParam); err != nil {
 		logger.Error("Body is invalid: ", err)
 		app.ResError(c, err, 400)
 		return
@@ -144,7 +144,7 @@ func (r *Routing) Update(c *gin.Context) {
 	}
 
 	validate := validator.New()
-	if err := validate.Struct(bodyParam); err != nil {
+	if err := validate.Validate(bodyParam); err != nil {
 		logger.Error("Body is invalid: ", err)
 		app.ResError(c, err, 400)
 		return

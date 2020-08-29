@@ -101,7 +101,7 @@ func (o *OutMsg) List(c *gin.Context) {
 }
 
 // Update Out Message godoc
-// @Tags Out Message
+// @Tags Out Messages
 // @Summary api update out message
 // @Description api update out message
 // @Accept  json
