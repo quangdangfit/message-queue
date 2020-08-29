@@ -8,7 +8,6 @@ import (
 	"gomq/app/dbs"
 	"gomq/app/queue"
 	repoImpl "gomq/app/repositories/impl"
-	"gomq/app/services"
 	serviceImpl "gomq/app/services/impl"
 )
 
@@ -29,12 +28,6 @@ func BuildContainer() *dig.Container {
 
 	// Inject services
 	err = serviceImpl.Inject(container)
-	if err != nil {
-		logger.Error("Failed to inject services", err)
-	}
-
-	// Inject services
-	err = services.Inject(container)
 	if err != nil {
 		logger.Error("Failed to inject services", err)
 	}
