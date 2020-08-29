@@ -21,8 +21,3 @@ type OutRepository interface {
 	AddOutMessage(message *models.OutMessage) error
 	UpdateOutMessage(message *models.OutMessage) error
 }
-
-type RoutingRepository interface {
-	GetRoutingKey(query map[string]interface{}) (*models.RoutingKey, error)
-	GetPreviousRoutingKey(srcRouting models.RoutingKey) (*models.RoutingKey, error)
-}

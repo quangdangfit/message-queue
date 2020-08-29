@@ -8,6 +8,7 @@ import (
 	"gomq/app/dbs"
 	"gomq/app/queue"
 	"gomq/app/repositories"
+	repoImpl "gomq/app/repositories/impl"
 	"gomq/app/services"
 )
 
@@ -18,6 +19,12 @@ func BuildContainer() *dig.Container {
 	err := dbs.Inject(container)
 	if err != nil {
 		logger.Error("Failed to inject database", err)
+	}
+
+	// Inject repositories
+	err = repoImpl.Inject(container)
+	if err != nil {
+		logger.Error("Failed to inject repositories", err)
 	}
 
 	// Inject repositories
