@@ -13,6 +13,7 @@ import (
 	"message-queue/app/models"
 	"message-queue/app/repositories"
 	"message-queue/app/schema"
+	"message-queue/config"
 )
 
 type routing struct {
@@ -51,8 +52,14 @@ func (r *routing) Get(query *schema.RoutingQueryParam) (*models.RoutingKey, erro
 }
 
 func (r *routing) List(query *schema.RoutingQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
-	var routingKeys []models.RoutingKey
+	if query.Page <= 0 {
+		query.Page = 1
+	}
+	if query.Limit <= 0 {
+		query.Limit = config.Config.PageLimit
+	}
 
+	var routingKeys []models.RoutingKey
 	var mapQuery map[string]interface{}
 	data, err := json.Marshal(query)
 	if err != nil {

@@ -1,9 +1,11 @@
 package impl
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/quangdangfit/gosdk/utils/paging"
 	"gopkg.in/mgo.v2/bson"
 
 	"message-queue/app/dbs"
@@ -49,30 +51,28 @@ func (o *outRepo) Get(query *schema.OutMsgQueryParam) (*models.OutMessage, error
 
 	return &message, nil
 }
-func (o *outRepo) List(query *schema.OutMsgQueryParam) (*[]models.OutMessage, error) {
-	var message []models.OutMessage
-
+func (o *outRepo) List(query *schema.OutMsgQueryParam) (*[]models.OutMessage, *paging.Paging, error) {
 	if query.Page <= 0 {
 		query.Page = 1
 	}
-
 	if query.Limit <= 0 {
 		query.Limit = config.Config.PageLimit
 	}
 
+	var message []models.OutMessage
 	var mapQuery map[string]interface{}
-	data, err := bson.Marshal(query)
+	data, err := json.Marshal(query)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	bson.Unmarshal(data, &mapQuery)
 
-	_, err = o.db.FindManyPaging(models.CollectionOutMessage, mapQuery, "-_id", query.Page, query.Limit, &message)
+	pageInfo, err := o.db.FindManyPaging(models.CollectionOutMessage, mapQuery, "-_id", query.Page, query.Limit, &message)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &message, nil
+	return &message, pageInfo, nil
 }
 
 func (o *outRepo) Create(message *models.OutMessage) error {

@@ -8,7 +8,7 @@ definitions:
       msg:
         type: string
     type: object
-  schema.OutMsgBodyParam:
+  schema.OutMsgCreateParam:
     properties:
       origin_code:
         example: code
@@ -24,6 +24,17 @@ definitions:
     required:
     - payload
     - routing_key
+    type: object
+  schema.OutMsgQueryParam:
+    properties:
+      origin_code:
+        type: string
+      origin_model:
+        type: string
+      routing_key:
+        type: string
+      status:
+        type: string
     type: object
   schema.RoutingCreateParam:
     properties:
@@ -104,6 +115,39 @@ paths:
       tags:
       - Retry
   /api/v1/out_messages:
+    get:
+      consumes:
+      - application/json
+      description: get list out messages
+      parameters:
+      - in: query
+        name: origin_code
+        type: string
+      - in: query
+        name: origin_model
+        type: string
+      - in: query
+        name: routing_key
+        type: string
+      - in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/app.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: get list out messages
+      tags:
+      - Out Messages
     post:
       consumes:
       - application/json
@@ -114,7 +158,7 @@ paths:
         name: Body
         required: true
         schema:
-          $ref: '#/definitions/schema.OutMsgBodyParam'
+          $ref: '#/definitions/schema.OutMsgCreateParam'
       produces:
       - application/json
       responses:

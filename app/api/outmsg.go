@@ -27,13 +27,13 @@ func NewSender(service services.OutService) *OutMsg {
 // @Description api publish out message to amqp
 // @Accept  json
 // @Produce json
-// @Param Body body schema.OutMsgBodyParam true "Body"
+// @Param Body body schema.OutMsgCreateParam true "Body"
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
 // @Router /api/v1/out_messages [post]
 func (s *OutMsg) Publish(c *gin.Context) {
-	var req schema.OutMsgBodyParam
+	var req schema.OutMsgCreateParam
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Failed to bind body: ", err)
 		app.ResError(c, err, 400)
@@ -64,7 +64,41 @@ func (s *OutMsg) Publish(c *gin.Context) {
 	app.ResOK(c)
 }
 
-func (s *OutMsg) prepareMessage(c *gin.Context, body schema.OutMsgBodyParam) (
+// Get List Out Messages godoc
+// @Tags Out Messages
+// @Summary get list out messages
+// @Description get list out messages
+// @Accept  json
+// @Produce json
+// @Param Query query schema.OutMsgQueryParam true "Query"
+// @Security ApiKeyAuth
+// @Success 200 {object} app.Response
+// @Header 200 {string} Token "qwerty"
+// @Router /api/v1/out_messages [get]
+func (o *OutMsg) List(c *gin.Context) {
+	var queryParam schema.OutMsgQueryParam
+	if err := c.Bind(&queryParam); err != nil {
+		logger.Error("Failed to bind body, error: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	rs, pageInfo, err := o.service.List(c, &queryParam)
+	if err != nil {
+		logger.Error("Failed to get list out messages, error: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	res := schema.ResponsePaging{
+		Data:   rs,
+		Paging: pageInfo,
+	}
+
+	app.ResSuccess(c, res)
+}
+
+func (s *OutMsg) prepareMessage(c *gin.Context, body schema.OutMsgCreateParam) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &body)

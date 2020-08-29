@@ -77,6 +77,60 @@ var doc = `{
             }
         },
         "/api/v1/out_messages": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get list out messages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Out Messages"
+                ],
+                "summary": "get list out messages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "origin_code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "origin_model",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "routing_key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        },
+                        "headers": {
+                            "Token": {
+                                "type": "string",
+                                "description": "qwerty"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -101,7 +155,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.OutMsgBodyParam"
+                            "$ref": "#/definitions/schema.OutMsgCreateParam"
                         }
                     }
                 ],
@@ -312,7 +366,7 @@ var doc = `{
                 }
             }
         },
-        "schema.OutMsgBodyParam": {
+        "schema.OutMsgCreateParam": {
             "type": "object",
             "required": [
                 "payload",
@@ -333,6 +387,23 @@ var doc = `{
                 "routing_key": {
                     "type": "string",
                     "example": "routing.key"
+                }
+            }
+        },
+        "schema.OutMsgQueryParam": {
+            "type": "object",
+            "properties": {
+                "origin_code": {
+                    "type": "string"
+                },
+                "origin_model": {
+                    "type": "string"
+                },
+                "routing_key": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

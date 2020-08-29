@@ -9,7 +9,7 @@ type OutMsgQueryParam struct {
 	Limit       int    `json:"-" form:"limit,omitempty"`
 }
 
-type OutMsgBodyParam struct {
+type OutMsgCreateParam struct {
 	RoutingKey  string      `json:"routing_key,omitempty" validate:"required" example:"routing.key"`
 	Payload     interface{} `json:"payload,omitempty" validate:"required"`
 	OriginCode  string      `json:"origin_code,omitempty" example:"code"`
