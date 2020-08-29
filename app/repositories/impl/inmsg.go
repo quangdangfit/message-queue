@@ -1,4 +1,4 @@
-package repositories
+package impl
 
 import (
 	"encoding/json"
@@ -9,18 +9,19 @@ import (
 
 	"gomq/app/dbs"
 	"gomq/app/models"
+	"gomq/app/repositories"
 	"gomq/app/schema"
 )
 
-type inMessageRepo struct {
+type inRepo struct {
 	db dbs.IDatabase
 }
 
-func NewInRepository(db dbs.IDatabase) InRepository {
-	return &inMessageRepo{db: db}
+func NewInRepository(db dbs.IDatabase) repositories.InRepository {
+	return &inRepo{db: db}
 }
 
-func (i *inMessageRepo) GetInMessageByID(id string) (*models.InMessage, error) {
+func (i *inRepo) GetByID(id string) (*models.InMessage, error) {
 	message := models.InMessage{}
 	query := bson.M{"id": id}
 	err := i.db.FindOne(models.CollectionInMessage, query, "-_id", &message)
@@ -31,7 +32,7 @@ func (i *inMessageRepo) GetInMessageByID(id string) (*models.InMessage, error) {
 	return &message, nil
 }
 
-func (i *inMessageRepo) GetSingleInMessage(query *schema.InMessageQueryParam) (*models.InMessage, error) {
+func (i *inRepo) Retrieve(query *schema.InMessageQueryParam) (*models.InMessage, error) {
 	message := models.InMessage{}
 
 	var mapQuery map[string]interface{}
@@ -49,7 +50,7 @@ func (i *inMessageRepo) GetSingleInMessage(query *schema.InMessageQueryParam) (*
 	return &message, nil
 }
 
-func (i *inMessageRepo) GetInMessages(query *schema.InMessageQueryParam, limit int) (*[]models.InMessage, error) {
+func (i *inRepo) List(query *schema.InMessageQueryParam, limit int) (*[]models.InMessage, error) {
 	var message []models.InMessage
 
 	var mapQuery map[string]interface{}
@@ -67,7 +68,7 @@ func (i *inMessageRepo) GetInMessages(query *schema.InMessageQueryParam, limit i
 	return &message, nil
 }
 
-func (i *inMessageRepo) AddInMessage(message *models.InMessage) error {
+func (i *inRepo) Create(message *models.InMessage) error {
 	message.CreatedTime = time.Now()
 	message.UpdatedTime = time.Now()
 	message.ID = uuid.New().String()
@@ -87,7 +88,7 @@ func (i *inMessageRepo) AddInMessage(message *models.InMessage) error {
 	return nil
 }
 
-func (i *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
+func (i *inRepo) Update(message *models.InMessage) error {
 	message.UpdatedTime = time.Now()
 	selector := bson.M{"id": message.ID}
 
@@ -107,10 +108,10 @@ func (i *inMessageRepo) UpdateInMessage(message *models.InMessage) error {
 	return nil
 }
 
-func (i *inMessageRepo) UpsertInMessage(message *models.InMessage) error {
-	msg, _ := i.GetInMessageByID(message.ID)
+func (i *inRepo) Upsert(message *models.InMessage) error {
+	msg, _ := i.GetByID(message.ID)
 	if msg != nil {
-		return i.UpdateInMessage(message)
+		return i.Update(message)
 	}
-	return i.AddInMessage(message)
+	return i.Create(message)
 }

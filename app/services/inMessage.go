@@ -51,7 +51,7 @@ func (i *inService) Consume() {
 	for index := 0; index <= i.consumerThreads; index++ {
 		for msg := range msgChan {
 			i.handle(msg, msg.RoutingKey.Name)
-			i.inMsgRepo.AddInMessage(msg)
+			i.inMsgRepo.Create(msg)
 		}
 	}
 }
@@ -61,7 +61,7 @@ func (i *inService) CronRetry(limit int) error {
 		Status: models.InMessageStatusWaitRetry,
 	}
 
-	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
+	messages, _ := i.inMsgRepo.List(&query, limit)
 	if messages == nil {
 		logger.Info("[Retry Message] Not found any wait_retry message!")
 		return nil
@@ -78,7 +78,7 @@ func (i *inService) CronRetry(limit int) error {
 		if msg.Attempts >= i.getMaxRetryTimes() {
 			msg.Status = models.InMessageStatusFailed
 		}
-		err = i.inMsgRepo.UpdateInMessage(&msg)
+		err = i.inMsgRepo.Update(&msg)
 		if err != nil {
 			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s",
 				msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
@@ -93,7 +93,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 	query := schema.InMessageQueryParam{
 		Status: models.InMessageStatusWaitPrevMsg,
 	}
-	messages, _ := i.inMsgRepo.GetInMessages(&query, limit)
+	messages, _ := i.inMsgRepo.List(&query, limit)
 	if messages == nil {
 		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
 		return nil
@@ -105,7 +105,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 			RoutingGroup: msg.RoutingKey.Group,
 			RoutingValue: msg.RoutingKey.Value - 1,
 		}
-		prevMsg, err := i.inMsgRepo.GetSingleInMessage(&query)
+		prevMsg, err := i.inMsgRepo.Retrieve(&query)
 		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
 			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
 				prevMsg.Status != models.InMessageStatusCanceled) {
@@ -123,7 +123,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 		if msg.Attempts >= i.getMaxRetryTimes() {
 			msg.Status = models.InMessageStatusFailed
 		}
-		err = i.inMsgRepo.UpdateInMessage(&msg)
+		err = i.inMsgRepo.Update(&msg)
 		if err != nil {
 			logger.Errorf("Sent, failed to update status: %s, %s, %s, "+
 				"error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
@@ -187,7 +187,7 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 }
 
 func (i *inService) storeMessage(message *models.InMessage) (err error) {
-	return i.inMsgRepo.UpsertInMessage(message)
+	return i.inMsgRepo.Upsert(message)
 }
 
 func (i *inService) callAPI(message *models.InMessage) (*http.Response, error) {
@@ -220,7 +220,7 @@ func (i *inService) getPreviousMessage(message models.InMessage, routingKey stri
 		OriginCode:  message.OriginCode,
 		RoutingKey:  routingKey,
 	}
-	return i.inMsgRepo.GetSingleInMessage(&query)
+	return i.inMsgRepo.Retrieve(&query)
 }
 
 func (i *inService) getMaxRetryTimes() uint {
