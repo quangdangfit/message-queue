@@ -137,7 +137,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 
 func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	query := bson.M{"name": routingKey}
-	inRoutingKey, err := i.routingRepo.Retrieve(query)
+	inRoutingKey, err := i.routingRepo.Get(query)
 	if err != nil {
 		message.Status = models.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseLogs(err))

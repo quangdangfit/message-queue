@@ -15,6 +15,8 @@ func RegisterAPI(e *gin.Engine, container *dig.Container) error {
 		apiRoute := e.Group("/api/v1/queue")
 		apiRoute.POST("/messages", sender.PublishMessage)
 
+		// Routing Keys
+		apiRoute.GET("/routing_keys/:id", routing.Retrieve)
 		apiRoute.POST("/routing_keys", routing.Create)
 
 		return nil
