@@ -1,4 +1,4 @@
-package services
+package impl
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"gomq/app/queue"
 	"gomq/app/repositories"
 	"gomq/app/schema"
+	"gomq/app/services"
 )
 
 type outService struct {
@@ -16,7 +17,7 @@ type outService struct {
 	repo repositories.OutRepository
 }
 
-func NewOutService(pub queue.Publisher, repo repositories.OutRepository) OutService {
+func NewOutService(pub queue.Publisher, repo repositories.OutRepository) services.OutService {
 	return &outService{
 		pub:  pub,
 		repo: repo,
