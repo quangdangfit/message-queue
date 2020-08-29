@@ -47,7 +47,7 @@ func (s *OutMsg) Publish(c *gin.Context) {
 		return
 	}
 
-	message, err := s.parseMessage(c, req)
+	message, err := s.prepareMessage(c, req)
 	if err != nil {
 		logger.Error("Failed to parse out message: ", err)
 		app.ResError(c, err, 400)
@@ -64,7 +64,7 @@ func (s *OutMsg) Publish(c *gin.Context) {
 	app.ResOK(c)
 }
 
-func (s *OutMsg) parseMessage(c *gin.Context, body schema.OutMsgBodyParam) (
+func (s *OutMsg) prepareMessage(c *gin.Context, body schema.OutMsgBodyParam) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &body)
@@ -73,11 +73,7 @@ func (s *OutMsg) parseMessage(c *gin.Context, body schema.OutMsgBodyParam) (
 		return &message, err
 	}
 	message.Status = models.OutMessageStatusWait
-	message.APIKey = s.getAPIKey(c)
+	message.APIKey = c.Request.Header.Get("X-Api-Key")
 
 	return &message, nil
-}
-
-func (s *OutMsg) getAPIKey(c *gin.Context) string {
-	return c.Request.Header.Get("X-Api-Key")
 }
