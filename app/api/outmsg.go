@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/jinzhu/copier"
@@ -32,7 +34,7 @@ func NewSender(service services.OutService) *OutMsg {
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
 // @Router /api/v1/out_messages [post]
-func (s *OutMsg) Publish(c *gin.Context) {
+func (o *OutMsg) Publish(c *gin.Context) {
 	var req schema.OutMsgCreateParam
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Failed to bind body: ", err)
@@ -47,14 +49,14 @@ func (s *OutMsg) Publish(c *gin.Context) {
 		return
 	}
 
-	message, err := s.prepareMessage(c, req)
+	message, err := o.prepareMessage(c, req)
 	if err != nil {
 		logger.Error("Failed to parse out message: ", err)
 		app.ResError(c, err, 400)
 		return
 	}
 
-	err = s.service.Publish(c, message)
+	err = o.service.Publish(c, message)
 	if err != nil {
 		logger.Error("Failed to publish message: ", err)
 		app.ResError(c, err, 400)
@@ -98,7 +100,50 @@ func (o *OutMsg) List(c *gin.Context) {
 	app.ResSuccess(c, res)
 }
 
-func (s *OutMsg) prepareMessage(c *gin.Context, body schema.OutMsgCreateParam) (
+// Update Out Message godoc
+// @Tags Out Message
+// @Summary api update out message
+// @Description api update out message
+// @Accept  json
+// @Produce json
+// @Param id path string true "Message ID"
+// @Param Body body schema.OutMsgUpdateParam true "Body"
+// @Security ApiKeyAuth
+// @Success 200 {object} app.Response
+// @Router /api/v1/out_messages/{id} [put]
+func (o *OutMsg) Update(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		err := errors.New("missing message id")
+		logger.Error(err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	var bodyParam schema.OutMsgUpdateParam
+	if err := c.Bind(&bodyParam); err != nil {
+		logger.Error("Failed to bind body: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Validate(bodyParam); err != nil {
+		logger.Error("Body is invalid: ", err)
+		app.ResError(c, err, 400)
+		return
+	}
+
+	rs, err := o.service.Update(c, id, &bodyParam)
+	if err != nil {
+		logger.Errorf("Failed to update out message %s, error: %s", id, err)
+		app.ResError(c, err, 400)
+	}
+
+	app.ResSuccess(c, rs)
+}
+
+func (o *OutMsg) prepareMessage(c *gin.Context, body schema.OutMsgCreateParam) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &body)

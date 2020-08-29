@@ -15,3 +15,7 @@ type OutMsgCreateParam struct {
 	OriginCode  string      `json:"origin_code,omitempty" example:"code"`
 	OriginModel string      `json:"origin_model,omitempty" example:"model"`
 }
+
+type OutMsgUpdateParam struct {
+	Status string `json:"status,omitempty" validate:"omitempty,oneof=wait canceled sent"`
+}

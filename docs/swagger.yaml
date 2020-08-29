@@ -36,6 +36,11 @@ definitions:
       status:
         type: string
     type: object
+  schema.OutMsgUpdateParam:
+    properties:
+      status:
+        type: string
+    type: object
   schema.RoutingCreateParam:
     properties:
       api_method:
@@ -175,6 +180,35 @@ paths:
       summary: publish message to amqp
       tags:
       - Out Messages
+  /api/v1/out_messages/{id}:
+    put:
+      consumes:
+      - application/json
+      description: api update out message
+      parameters:
+      - description: Message ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Body
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OutMsgUpdateParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: api update out message
+      tags:
+      - Out Message
   /api/v1/routing_keys:
     get:
       consumes:

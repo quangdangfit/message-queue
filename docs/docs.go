@@ -175,6 +175,52 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/out_messages/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "api update out message",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Out Message"
+                ],
+                "summary": "api update out message",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Body",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.OutMsgUpdateParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/routing_keys": {
             "get": {
                 "security": [
@@ -402,6 +448,14 @@ var doc = `{
                 "routing_key": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OutMsgUpdateParam": {
+            "type": "object",
+            "properties": {
                 "status": {
                     "type": "string"
                 }

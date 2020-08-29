@@ -2,9 +2,12 @@ package impl
 
 import (
 	"encoding/json"
+	"errors"
+	"reflect"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/quangdangfit/gosdk/utils/paging"
 	"gopkg.in/mgo.v2/bson"
 
@@ -88,19 +91,37 @@ func (o *outRepo) Create(message *models.OutMessage) error {
 	return nil
 }
 
-func (o *outRepo) Update(message *models.OutMessage) error {
-	selector := bson.M{"id": message.ID}
-
-	var payload map[string]interface{}
-	message.UpdatedTime = time.Now()
-	data, _ := json.Marshal(message)
-	json.Unmarshal(data, &payload)
-
-	change := bson.M{"$set": payload}
-	err := o.db.UpdateOne(models.CollectionOutMessage, selector, change)
+func (o *outRepo) Update(id string, body *schema.OutMsgUpdateParam) (*models.OutMessage, error) {
+	msg, err := o.Retrieve(id)
 	if err != nil {
-		return err
+		return nil, err
+	} else if msg == nil {
+		return nil, errors.New("not found out message")
 	}
 
-	return nil
+	var update models.OutMessage
+	copier.Copy(&update, &msg)
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(data, &update)
+
+	if reflect.DeepEqual(*msg, update) {
+		return msg, nil
+	}
+
+	var value map[string]interface{}
+	data, err = json.Marshal(update)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(data, &value)
+
+	selector := bson.M{"id": msg.ID}
+	err = o.db.UpdateOne(models.CollectionOutMessage, selector, value)
+	if err != nil {
+		return nil, err
+	}
+	return &update, nil
 }

@@ -12,5 +12,5 @@ type OutRepository interface {
 	Get(query *schema.OutMsgQueryParam) (*models.OutMessage, error)
 	List(query *schema.OutMsgQueryParam) (*[]models.OutMessage, *paging.Paging, error)
 	Create(message *models.OutMessage) error
-	Update(message *models.OutMessage) error
+	Update(id string, body *schema.OutMsgUpdateParam) (*models.OutMessage, error)
 }

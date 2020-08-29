@@ -38,6 +38,15 @@ func (o *outService) List(ctx context.Context, query *schema.OutMsgQueryParam) (
 	return rs, pageInfo, nil
 }
 
+func (o *outService) Update(ctx context.Context, id string, body *schema.OutMsgUpdateParam) (*models.OutMessage, error) {
+	rs, err := o.repo.Update(id, body)
+	if err != nil {
+		logger.Errorf("Failed to update out message %s, error: ", id)
+		return nil, err
+	}
+	return rs, nil
+}
+
 func (o *outService) Publish(ctx context.Context, message *models.OutMessage) error {
 	err := o.pub.Publish(message, true)
 	if err != nil {
