@@ -32,7 +32,7 @@ func (i *inRepo) GetByID(id string) (*models.InMessage, error) {
 	return &message, nil
 }
 
-func (i *inRepo) Retrieve(query *schema.InMessageQueryParam) (*models.InMessage, error) {
+func (i *inRepo) Retrieve(query *schema.InMsgQueryParam) (*models.InMessage, error) {
 	message := models.InMessage{}
 
 	var mapQuery map[string]interface{}
@@ -50,7 +50,7 @@ func (i *inRepo) Retrieve(query *schema.InMessageQueryParam) (*models.InMessage,
 	return &message, nil
 }
 
-func (i *inRepo) List(query *schema.InMessageQueryParam, limit int) (*[]models.InMessage, error) {
+func (i *inRepo) List(query *schema.InMsgQueryParam, limit int) (*[]models.InMessage, error) {
 	var message []models.InMessage
 
 	var mapQuery map[string]interface{}

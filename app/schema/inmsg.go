@@ -1,6 +1,6 @@
 package schema
 
-type InMessageQueryParam struct {
+type InMsgQueryParam struct {
 	RoutingKey   string `json:"routing_key.name,omitempty"`
 	RoutingGroup string `json:"routing_key.group,omitempty"`
 	RoutingValue uint   `json:"routing_key.value,omitempty"`

@@ -27,13 +27,13 @@ func NewSender(service services.OutService) *Sender {
 // @Description api publish out message to amqp
 // @Accept  json
 // @Produce json
-// @Param Body body schema.OutMessageBodyParam true "Body"
+// @Param Body body schema.OutMsgBodyParam true "Body"
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
 // @Router /api/v1/queue/messages [post]
 func (s *Sender) PublishMessage(c *gin.Context) {
-	var req schema.OutMessageBodyParam
+	var req schema.OutMsgBodyParam
 	if err := c.Bind(&req); err != nil {
 		logger.Error("Failed to bind body: ", err)
 		app.ResError(c, err, 400)
@@ -64,7 +64,7 @@ func (s *Sender) PublishMessage(c *gin.Context) {
 	app.ResOK(c)
 }
 
-func (s *Sender) parseMessage(c *gin.Context, body schema.OutMessageBodyParam) (
+func (s *Sender) parseMessage(c *gin.Context, body schema.OutMsgBodyParam) (
 	*models.OutMessage, error) {
 	message := models.OutMessage{}
 	err := copier.Copy(&message, &body)

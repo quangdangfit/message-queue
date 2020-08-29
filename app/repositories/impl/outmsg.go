@@ -32,7 +32,7 @@ func (o *outRepo) GetByID(id string) (*models.OutMessage, error) {
 	return &message, nil
 }
 
-func (o *outRepo) Retrieve(query *schema.OutMessageQueryParam) (*models.OutMessage, error) {
+func (o *outRepo) Retrieve(query *schema.OutMsgQueryParam) (*models.OutMessage, error) {
 	message := models.OutMessage{}
 
 	var mapQuery map[string]interface{}
@@ -49,7 +49,7 @@ func (o *outRepo) Retrieve(query *schema.OutMessageQueryParam) (*models.OutMessa
 
 	return &message, nil
 }
-func (o *outRepo) List(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error) {
+func (o *outRepo) List(query *schema.OutMsgQueryParam, limit int) (*[]models.OutMessage, error) {
 	var message []models.OutMessage
 
 	var mapQuery map[string]interface{}

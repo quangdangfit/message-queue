@@ -58,7 +58,7 @@ func (i *inService) Consume() {
 }
 
 func (i *inService) CronRetry(limit int) error {
-	query := schema.InMessageQueryParam{
+	query := schema.InMsgQueryParam{
 		Status: models.InMessageStatusWaitRetry,
 	}
 
@@ -91,7 +91,7 @@ func (i *inService) CronRetry(limit int) error {
 }
 
 func (i *inService) CronRetryPrevious(limit int) error {
-	query := schema.InMessageQueryParam{
+	query := schema.InMsgQueryParam{
 		Status: models.InMessageStatusWaitPrevMsg,
 	}
 	messages, _ := i.inRepo.List(&query, limit)
@@ -102,7 +102,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 
 	logger.Infof("[Retry Prev Message] Found %d wait_prev messages!", len(*messages))
 	for _, msg := range *messages {
-		query := schema.InMessageQueryParam{
+		query := schema.InMsgQueryParam{
 			RoutingGroup: msg.RoutingKey.Group,
 			RoutingValue: msg.RoutingKey.Value - 1,
 		}
@@ -216,7 +216,7 @@ func (i *inService) callAPI(message *models.InMessage) (*http.Response, error) {
 
 func (i *inService) getPreviousMessage(message models.InMessage, routingKey string) (*models.InMessage, error) {
 
-	query := schema.InMessageQueryParam{
+	query := schema.InMsgQueryParam{
 		OriginModel: message.OriginModel,
 		OriginCode:  message.OriginCode,
 		RoutingKey:  routingKey,
