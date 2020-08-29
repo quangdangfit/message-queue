@@ -9,8 +9,7 @@ import (
 
 type RoutingRepository interface {
 	Retrieve(id string) (*models.RoutingKey, error)
-	Get(query map[string]interface{}) (*models.RoutingKey, error)
-	GetPrevious(srcRouting models.RoutingKey) (*models.RoutingKey, error)
+	Get(query *schema.RoutingQueryParam) (*models.RoutingKey, error)
 	List(query *schema.RoutingQueryParam) (*[]models.RoutingKey, *paging.Paging, error)
 	Create(body *schema.RoutingCreateParam) (*models.RoutingKey, error)
 	Update(id string, body *schema.RoutingUpdateParam) (*models.RoutingKey, error)

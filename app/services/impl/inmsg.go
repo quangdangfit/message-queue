@@ -10,7 +10,6 @@ import (
 
 	"github.com/quangdangfit/gosdk/utils/logger"
 	"github.com/spf13/viper"
-	"gopkg.in/mgo.v2/bson"
 
 	"message-queue/app/models"
 	"message-queue/app/queue"
@@ -136,8 +135,10 @@ func (i *inService) CronRetryPrevious(limit int) error {
 }
 
 func (i *inService) handle(message *models.InMessage, routingKey string) error {
-	query := bson.M{"name": routingKey}
-	inRoutingKey, err := i.routingRepo.Get(query)
+	query := schema.RoutingQueryParam{
+		Name: routingKey,
+	}
+	inRoutingKey, err := i.routingRepo.Get(&query)
 	if err != nil {
 		message.Status = models.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseLogs(err))
@@ -146,18 +147,12 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	}
 	message.RoutingKey = *inRoutingKey
 
-	prevRoutingKey, _ := i.routingRepo.GetPrevious(message.RoutingKey)
-	if prevRoutingKey != nil {
-		prevMsg, _ := i.getPreviousMessage(*message, prevRoutingKey.Name)
-
-		if prevMsg == nil || (prevMsg.Status != models.InMessageStatusSuccess &&
-			prevMsg.Status != models.InMessageStatusCanceled) {
-
-			message.Status = models.InMessageStatusWaitPrevMsg
-
-			logger.Warn("Set message to WAIT_PREV_MESSAGE")
-			return nil
-		}
+	prevMsg, _ := i.getPrevMessage(message)
+	if (prevMsg == nil && message.RoutingKey.Value != 1) ||
+		(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess && prevMsg.Status != models.InMessageStatusCanceled) {
+		message.Status = models.InMessageStatusWaitPrevMsg
+		logger.Warn("Set message to WAIT_PREV_MESSAGE")
+		return nil
 	}
 
 	res, err := i.callAPI(message)
@@ -214,12 +209,21 @@ func (i *inService) callAPI(message *models.InMessage) (*http.Response, error) {
 	return res, nil
 }
 
-func (i *inService) getPreviousMessage(message models.InMessage, routingKey string) (*models.InMessage, error) {
+func (i *inService) getPrevMessage(message *models.InMessage) (*models.InMessage, error) {
+	// Get previous routing
+	routingQuery := schema.RoutingQueryParam{
+		Group: message.RoutingKey.Group,
+		Value: message.RoutingKey.Value - 1,
+	}
+	prevRouting, err := i.routingRepo.Get(&routingQuery)
+	if err != nil || prevRouting == nil {
+		return nil, err
+	}
 
 	query := schema.InMsgQueryParam{
 		OriginModel: message.OriginModel,
 		OriginCode:  message.OriginCode,
-		RoutingKey:  routingKey,
+		RoutingKey:  prevRouting.Name,
 	}
 	return i.inRepo.Retrieve(&query)
 }

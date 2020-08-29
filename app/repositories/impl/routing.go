@@ -33,25 +33,21 @@ func (r *routing) Retrieve(id string) (*models.RoutingKey, error) {
 	return &routingKey, nil
 }
 
-func (r *routing) Get(query map[string]interface{}) (*models.RoutingKey, error) {
+func (r *routing) Get(query *schema.RoutingQueryParam) (*models.RoutingKey, error) {
 	var routingKey models.RoutingKey
-	query["active"] = true
-	err := r.db.FindOne(models.CollectionRoutingKey, query, "",
-		&routingKey)
+	var mapQuery map[string]interface{}
+	data, err := json.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(data, &mapQuery)
+	mapQuery["active"] = true
+
+	err = r.db.FindOne(models.CollectionRoutingKey, mapQuery, "", &routingKey)
 	if err != nil {
 		return nil, err
 	}
 	return &routingKey, nil
-}
-
-func (r *routing) GetPrevious(srcRouting models.RoutingKey) (
-	*models.RoutingKey, error) {
-
-	query := bson.M{
-		"group": srcRouting.Group,
-		"value": srcRouting.Value - 1,
-	}
-	return r.Get(query)
 }
 
 func (r *routing) List(query *schema.RoutingQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
