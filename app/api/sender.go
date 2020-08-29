@@ -31,7 +31,7 @@ func NewSender(service services.OutService) *Sender {
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
-// @Router /api/v1/queue/messages [post]
+// @Router /api/v1/out_messages [post]
 func (s *Sender) PublishMessage(c *gin.Context) {
 	var req schema.OutMsgBodyParam
 	if err := c.Bind(&req); err != nil {

@@ -29,7 +29,7 @@ func NewRouting(service services.RoutingService) *Routing {
 // @Param id path string true "Routing Key ID"
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
-// @Router /api/v1/queue/routing_keys/{id} [get]
+// @Router /api/v1/routing_keys/{id} [get]
 func (r *Routing) Retrieve(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -57,7 +57,7 @@ func (r *Routing) Retrieve(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
-// @Router /api/v1/queue/routing_keys [get]
+// @Router /api/v1/routing_keys [get]
 func (r *Routing) List(c *gin.Context) {
 	var queryParam schema.RoutingQueryParam
 	if err := c.Bind(&queryParam); err != nil {
@@ -91,7 +91,7 @@ func (r *Routing) List(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
 // @Header 200 {string} Token "qwerty"
-// @Router /api/v1/queue/routing_keys [post]
+// @Router /api/v1/routing_keys [post]
 func (r *Routing) Create(c *gin.Context) {
 	var bodyParam schema.RoutingCreateParam
 	if err := c.Bind(&bodyParam); err != nil {
@@ -127,7 +127,7 @@ func (r *Routing) Create(c *gin.Context) {
 // @Param Body body schema.RoutingUpdateParam true "Body"
 // @Security ApiKeyAuth
 // @Success 200 {object} app.Response
-// @Router /api/v1/queue/routing_keys/{id} [put]
+// @Router /api/v1/routing_keys/{id} [put]
 func (r *Routing) Update(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

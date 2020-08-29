@@ -76,7 +76,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/queue/messages": {
+        "/api/v1/out_messages": {
             "post": {
                 "security": [
                     {
@@ -121,7 +121,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/queue/routing_keys": {
+        "/api/v1/routing_keys": {
             "get": {
                 "security": [
                     {
@@ -215,7 +215,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/queue/routing_keys/{id}": {
+        "/api/v1/routing_keys/{id}": {
             "get": {
                 "security": [
                     {

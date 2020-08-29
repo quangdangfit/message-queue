@@ -103,7 +103,7 @@ paths:
       summary: api retry `wait retry previous` in messages
       tags:
       - Retry
-  /api/v1/queue/messages:
+  /api/v1/out_messages:
     post:
       consumes:
       - application/json
@@ -131,7 +131,7 @@ paths:
       summary: publish message to amqp
       tags:
       - Out Messages
-  /api/v1/queue/routing_keys:
+  /api/v1/routing_keys:
     get:
       consumes:
       - application/json
@@ -189,7 +189,7 @@ paths:
       summary: create routing key
       tags:
       - Routing Keys
-  /api/v1/queue/routing_keys/{id}:
+  /api/v1/routing_keys/{id}:
     get:
       consumes:
       - application/json
