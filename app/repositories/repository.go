@@ -13,11 +13,3 @@ type InRepository interface {
 	UpdateInMessage(message *models.InMessage) error
 	UpsertInMessage(message *models.InMessage) error
 }
-
-type OutRepository interface {
-	GetOutMessageByID(id string) (*models.OutMessage, error)
-	GetSingleOutMessage(query *schema.OutMessageQueryParam) (*models.OutMessage, error)
-	GetOutMessages(query *schema.OutMessageQueryParam, limit int) (*[]models.OutMessage, error)
-	AddOutMessage(message *models.OutMessage) error
-	UpdateOutMessage(message *models.OutMessage) error
-}

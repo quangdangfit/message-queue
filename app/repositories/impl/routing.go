@@ -20,7 +20,7 @@ func NewRoutingRepository(db dbs.IDatabase) repositories.RoutingRepository {
 	return &routing{db: db}
 }
 
-func (r *routing) GetRoutingKey(query map[string]interface{}) (*models.RoutingKey, error) {
+func (r *routing) Retrieve(query map[string]interface{}) (*models.RoutingKey, error) {
 	var routingKey models.RoutingKey
 	query["active"] = true
 	err := r.db.FindOne(models.CollectionRoutingKey, query, "",
@@ -31,17 +31,17 @@ func (r *routing) GetRoutingKey(query map[string]interface{}) (*models.RoutingKe
 	return &routingKey, nil
 }
 
-func (r *routing) GetPreviousRoutingKey(srcRouting models.RoutingKey) (
+func (r *routing) GetPrevious(srcRouting models.RoutingKey) (
 	*models.RoutingKey, error) {
 
 	query := bson.M{
 		"group": srcRouting.Group,
 		"value": srcRouting.Value - 1,
 	}
-	return r.GetRoutingKey(query)
+	return r.Retrieve(query)
 }
 
-func (r *routing) GetRoutingKeys(query *schema.RoutingKeyQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
+func (r *routing) List(query *schema.RoutingKeyQueryParam) (*[]models.RoutingKey, *paging.Paging, error) {
 	var routingKeys []models.RoutingKey
 
 	var mapQuery map[string]interface{}

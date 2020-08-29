@@ -136,7 +136,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 
 func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	query := bson.M{"name": routingKey}
-	inRoutingKey, err := i.routingRepo.GetRoutingKey(query)
+	inRoutingKey, err := i.routingRepo.Retrieve(query)
 	if err != nil {
 		message.Status = models.InMessageStatusInvalid
 		message.Logs = append(message.Logs, utils.ParseLogs(err))
@@ -145,7 +145,7 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 	}
 	message.RoutingKey = *inRoutingKey
 
-	prevRoutingKey, _ := i.routingRepo.GetPreviousRoutingKey(message.RoutingKey)
+	prevRoutingKey, _ := i.routingRepo.GetPrevious(message.RoutingKey)
 	if prevRoutingKey != nil {
 		prevMsg, _ := i.getPreviousMessage(*message, prevRoutingKey.Name)
 

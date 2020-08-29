@@ -29,7 +29,7 @@ func (o *outService) Publish(ctx context.Context, message *models.OutMessage) er
 		logger.Errorf("Failed to publish msg %s, %s", message.ID, err)
 	}
 
-	err = o.repo.AddOutMessage(message)
+	err = o.repo.Create(message)
 	if err != nil {
 		logger.Errorf("Failed to create out msg %s", message.ID)
 		return err
@@ -41,7 +41,7 @@ func (o *outService) CronResend(limit int) error {
 	query := schema.OutMessageQueryParam{
 		Status: models.OutMessageStatusWait,
 	}
-	messages, _ := o.repo.GetOutMessages(&query, limit)
+	messages, _ := o.repo.List(&query, limit)
 	if messages == nil {
 		logger.Info("[Resend Message] Not found any wait message!")
 		return nil
