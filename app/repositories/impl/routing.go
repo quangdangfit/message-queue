@@ -61,7 +61,7 @@ func (r *routing) List(query *schema.RoutingQueryParam) (*[]models.RoutingKey, *
 
 func (r *routing) Create(body *schema.RoutingCreateParam) (*models.RoutingKey, error) {
 	var routing models.RoutingKey
-	copier.Copy(routing, body)
+	copier.Copy(&routing, &body)
 	routing.BeforeCreate()
 	routing.Active = true
 

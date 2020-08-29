@@ -8,7 +8,7 @@ definitions:
       msg:
         type: string
     type: object
-  schema.OutMessageBodyParam:
+  schema.OutMsgBodyParam:
     properties:
       origin_code:
         example: code
@@ -24,6 +24,25 @@ definitions:
     required:
     - payload
     - routing_key
+    type: object
+  schema.RoutingCreateParam:
+    properties:
+      api_method:
+        type: string
+      api_url:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+      value:
+        type: integer
+    required:
+    - api_method
+    - api_url
+    - group
+    - name
+    - value
     type: object
 info:
   contact: {}
@@ -73,7 +92,7 @@ paths:
         name: Body
         required: true
         schema:
-          $ref: '#/definitions/schema.OutMessageBodyParam'
+          $ref: '#/definitions/schema.OutMsgBodyParam'
       produces:
       - application/json
       responses:
@@ -90,4 +109,32 @@ paths:
       summary: publish message to amqp
       tags:
       - Out Messages
+  /api/v1/queue/routing_keys:
+    post:
+      consumes:
+      - application/json
+      description: api create routing key
+      parameters:
+      - description: Body
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RoutingCreateParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/app.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: create routing key
+      tags:
+      - Routing Keys
 swagger: "2.0"

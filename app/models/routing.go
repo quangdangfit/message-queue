@@ -5,7 +5,7 @@ const (
 )
 
 type RoutingKey struct {
-	Model     `json:"inline" bson:"inline"`
+	Model     `json:",inline" bson:",inline"`
 	Name      string `json:"name,omitempty" bson:"name,omitempty"`
 	Group     string `json:"group,omitempty" bson:"group,omitempty"`
 	Value     uint   `json:"value,omitempty" bson:"value,omitempty"`

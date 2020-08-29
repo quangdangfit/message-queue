@@ -101,7 +101,52 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.OutMessageBodyParam"
+                            "$ref": "#/definitions/schema.OutMsgBodyParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        },
+                        "headers": {
+                            "Token": {
+                                "type": "string",
+                                "description": "qwerty"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/queue/routing_keys": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "api create routing key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Routing Keys"
+                ],
+                "summary": "create routing key",
+                "parameters": [
+                    {
+                        "description": "Body",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.RoutingCreateParam"
                         }
                     }
                 ],
@@ -137,7 +182,7 @@ var doc = `{
                 }
             }
         },
-        "schema.OutMessageBodyParam": {
+        "schema.OutMsgBodyParam": {
             "type": "object",
             "required": [
                 "payload",
@@ -158,6 +203,33 @@ var doc = `{
                 "routing_key": {
                     "type": "string",
                     "example": "routing.key"
+                }
+            }
+        },
+        "schema.RoutingCreateParam": {
+            "type": "object",
+            "required": [
+                "api_method",
+                "api_url",
+                "group",
+                "name",
+                "value"
+            ],
+            "properties": {
+                "api_method": {
+                    "type": "string"
+                },
+                "api_url": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
                 }
             }
         }

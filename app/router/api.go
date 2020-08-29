@@ -10,9 +10,12 @@ import (
 func RegisterAPI(e *gin.Engine, container *dig.Container) error {
 	err := container.Invoke(func(
 		sender *api.Sender,
+		routing *api.Routing,
 	) error {
-		msgRoute := e.Group("/api/v1/queue")
-		msgRoute.POST("/messages", sender.PublishMessage)
+		apiRoute := e.Group("/api/v1/queue")
+		apiRoute.POST("/messages", sender.PublishMessage)
+
+		apiRoute.POST("/routing_keys", routing.Create)
 
 		return nil
 	})
