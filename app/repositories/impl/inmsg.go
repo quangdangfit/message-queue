@@ -21,7 +21,7 @@ func NewInRepository(db dbs.IDatabase) repositories.InRepository {
 	return &inRepo{db: db}
 }
 
-func (i *inRepo) GetByID(id string) (*models.InMessage, error) {
+func (i *inRepo) Retrieve(id string) (*models.InMessage, error) {
 	message := models.InMessage{}
 	query := bson.M{"id": id}
 	err := i.db.FindOne(models.CollectionInMessage, query, "-_id", &message)
@@ -32,7 +32,7 @@ func (i *inRepo) GetByID(id string) (*models.InMessage, error) {
 	return &message, nil
 }
 
-func (i *inRepo) Retrieve(query *schema.InMsgQueryParam) (*models.InMessage, error) {
+func (i *inRepo) Get(query *schema.InMsgQueryParam) (*models.InMessage, error) {
 	message := models.InMessage{}
 
 	var mapQuery map[string]interface{}
@@ -109,7 +109,7 @@ func (i *inRepo) Update(message *models.InMessage) error {
 }
 
 func (i *inRepo) Upsert(message *models.InMessage) error {
-	msg, _ := i.GetByID(message.ID)
+	msg, _ := i.Retrieve(message.ID)
 	if msg != nil {
 		return i.Update(message)
 	}

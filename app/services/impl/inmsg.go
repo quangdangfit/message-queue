@@ -105,7 +105,7 @@ func (i *inService) CronRetryPrevious(limit int) error {
 			RoutingGroup: msg.RoutingKey.Group,
 			RoutingValue: msg.RoutingKey.Value - 1,
 		}
-		prevMsg, err := i.inRepo.Retrieve(&query)
+		prevMsg, err := i.inRepo.Get(&query)
 		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
 			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
 				prevMsg.Status != models.InMessageStatusCanceled) {
@@ -225,7 +225,7 @@ func (i *inService) getPrevMessage(message *models.InMessage) (*models.InMessage
 		OriginCode:  message.OriginCode,
 		RoutingKey:  prevRouting.Name,
 	}
-	return i.inRepo.Retrieve(&query)
+	return i.inRepo.Get(&query)
 }
 
 func (i *inService) getMaxRetryTimes() uint {

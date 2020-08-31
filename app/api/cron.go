@@ -43,9 +43,9 @@ func (cron *Cron) Resend(c *gin.Context) {
 // failed when retry more than 3 times
 // @Success 200 {object} app.Response
 // @Router /api/v1/cron/retry [post]
-func (s *Cron) Retry(c *gin.Context) {
+func (cron *Cron) Retry(c *gin.Context) {
 	logger.Info("Start cronjob resend wait messages")
-	go s.inService.CronRetry(RetryInMessageLimit)
+	go cron.inService.CronRetry(RetryInMessageLimit)
 	app.ResOK(c)
 }
 
@@ -56,8 +56,8 @@ func (s *Cron) Retry(c *gin.Context) {
 // have previous message in status (cancel, success)
 // @Success 200 {object} app.Response
 // @Router /api/v1/cron/retry_previous [post]
-func (s *Cron) RetryPrevious(c *gin.Context) {
+func (cron *Cron) RetryPrevious(c *gin.Context) {
 	logger.Info("Start cronjob resend wait previous messages")
-	go s.inService.CronRetryPrevious(RetryInMessageLimit)
+	go cron.inService.CronRetryPrevious(RetryInMessageLimit)
 	app.ResOK(c)
 }
