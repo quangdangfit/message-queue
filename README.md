@@ -41,12 +41,14 @@ Service support rpc for publishing, create the client as below to call rpc:
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/rpc"
 )
 
 func main() {
+	gob.Register(map[string]interface{}{})
 	body := map[string]interface{}{
 		"routing_key": "routing.key",
 		"payload": map[string]interface{}{
