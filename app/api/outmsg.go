@@ -19,7 +19,7 @@ type OutMsg struct {
 	service services.OutService
 }
 
-func NewSender(service services.OutService) *OutMsg {
+func NewOutMsg(service services.OutService) *OutMsg {
 	return &OutMsg{service: service}
 }
 

@@ -8,6 +8,21 @@ definitions:
       msg:
         type: string
     type: object
+  schema.InMsgQueryParam:
+    properties:
+      origin_code:
+        type: string
+      origin_model:
+        type: string
+      routing_key.group:
+        type: string
+      routing_key.name:
+        type: string
+      routing_key.value:
+        type: integer
+      status:
+        type: string
+    type: object
   schema.OutMsgCreateParam:
     properties:
       origin_code:
@@ -119,6 +134,46 @@ paths:
       summary: api retry `wait retry previous` in messages
       tags:
       - Retry
+  /api/v1/in_messages:
+    get:
+      consumes:
+      - application/json
+      description: get list in messages
+      parameters:
+      - in: query
+        name: origin_code
+        type: string
+      - in: query
+        name: origin_model
+        type: string
+      - in: query
+        name: routing_key.group
+        type: string
+      - in: query
+        name: routing_key.name
+        type: string
+      - in: query
+        name: routing_key.value
+        type: integer
+      - in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/app.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: get list in messages
+      tags:
+      - In Messages
   /api/v1/out_messages:
     get:
       consumes:

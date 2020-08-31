@@ -2,6 +2,7 @@ package impl
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/quangdangfit/gosdk/utils/logger"
+	"github.com/quangdangfit/gosdk/utils/paging"
 	"github.com/spf13/viper"
 
 	"message-queue/app/models"
@@ -27,7 +29,7 @@ const (
 )
 
 type inService struct {
-	inRepo      repositories.InRepository
+	msgRepo     repositories.InRepository
 	routingRepo repositories.RoutingRepository
 
 	consumer        queue.Consumer
@@ -38,7 +40,7 @@ func NewInService(inRepo repositories.InRepository, routingRepo repositories.Rou
 	consumer queue.Consumer) services.InService {
 
 	r := inService{
-		inRepo:          inRepo,
+		msgRepo:         inRepo,
 		routingRepo:     routingRepo,
 		consumer:        consumer,
 		consumerThreads: DefaultConsumerThreads,
@@ -52,9 +54,18 @@ func (i *inService) Consume() {
 	for index := 0; index <= i.consumerThreads; index++ {
 		for msg := range msgChan {
 			i.handle(msg, msg.RoutingKey.Name)
-			i.inRepo.Create(msg)
+			i.msgRepo.Create(msg)
 		}
 	}
+}
+
+func (i *inService) List(ctx context.Context, query *schema.InMsgQueryParam) (*[]models.InMessage, *paging.Paging, error) {
+	rs, pageInfo, err := i.msgRepo.List(query)
+	if err != nil {
+		logger.Errorf("Failed to get list in messages, error: ", err)
+		return nil, nil, err
+	}
+	return rs, pageInfo, nil
 }
 
 func (i *inService) CronRetry() error {
@@ -62,7 +73,7 @@ func (i *inService) CronRetry() error {
 		Status: models.InMessageStatusWaitRetry,
 	}
 
-	messages, _, _ := i.inRepo.List(&query)
+	messages, _, _ := i.msgRepo.List(&query)
 	if messages == nil {
 		logger.Info("[Retry Message] Not found any wait_retry message!")
 		return nil
@@ -79,7 +90,7 @@ func (i *inService) CronRetry() error {
 		if msg.Attempts >= i.getMaxRetryTimes() {
 			msg.Status = models.InMessageStatusFailed
 		}
-		err = i.inRepo.Update(&msg)
+		err = i.msgRepo.Update(&msg)
 		if err != nil {
 			logger.Errorf("Sent, failed to update status: %s, %s, %s, error: %s",
 				msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
@@ -96,7 +107,7 @@ func (i *inService) CronRetryPrevious() error {
 		Page:   1,
 		Limit:  RetryInMessageLimit,
 	}
-	messages, _, _ := i.inRepo.List(&query)
+	messages, _, _ := i.msgRepo.List(&query)
 	if messages == nil {
 		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
 		return nil
@@ -108,7 +119,7 @@ func (i *inService) CronRetryPrevious() error {
 			RoutingGroup: msg.RoutingKey.Group,
 			RoutingValue: msg.RoutingKey.Value - 1,
 		}
-		prevMsg, err := i.inRepo.Get(&query)
+		prevMsg, err := i.msgRepo.Get(&query)
 		if (prevMsg == nil && msg.RoutingKey.Value != 1) ||
 			(prevMsg != nil && prevMsg.Status != models.InMessageStatusSuccess &&
 				prevMsg.Status != models.InMessageStatusCanceled) {
@@ -126,7 +137,7 @@ func (i *inService) CronRetryPrevious() error {
 		if msg.Attempts >= i.getMaxRetryTimes() {
 			msg.Status = models.InMessageStatusFailed
 		}
-		err = i.inRepo.Update(&msg)
+		err = i.msgRepo.Update(&msg)
 		if err != nil {
 			logger.Errorf("Sent, failed to update status: %s, %s, %s, "+
 				"error: %s", msg.RoutingKey.Name, msg.OriginModel, msg.OriginCode, err)
@@ -186,7 +197,7 @@ func (i *inService) handle(message *models.InMessage, routingKey string) error {
 }
 
 func (i *inService) storeMessage(message *models.InMessage) (err error) {
-	return i.inRepo.Upsert(message)
+	return i.msgRepo.Upsert(message)
 }
 
 func (i *inService) callAPI(message *models.InMessage) (*http.Response, error) {
@@ -228,7 +239,7 @@ func (i *inService) getPrevMessage(message *models.InMessage) (*models.InMessage
 		OriginCode:  message.OriginCode,
 		RoutingKey:  prevRouting.Name,
 	}
-	return i.inRepo.Get(&query)
+	return i.msgRepo.Get(&query)
 }
 
 func (i *inService) getMaxRetryTimes() uint {

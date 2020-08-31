@@ -38,11 +38,11 @@ func (i *inRepo) Get(query *schema.InMsgQueryParam) (*models.InMessage, error) {
 	message := models.InMessage{}
 
 	var mapQuery map[string]interface{}
-	data, err := bson.Marshal(query)
+	data, err := json.Marshal(query)
 	if err != nil {
 		return nil, err
 	}
-	bson.Unmarshal(data, &mapQuery)
+	json.Unmarshal(data, &mapQuery)
 
 	err = i.db.FindOne(models.CollectionInMessage, mapQuery, "-_id", &message)
 	if err != nil {
@@ -62,11 +62,11 @@ func (i *inRepo) List(query *schema.InMsgQueryParam) (*[]models.InMessage, *pagi
 
 	var message []models.InMessage
 	var mapQuery map[string]interface{}
-	data, err := bson.Marshal(query)
+	data, err := json.Marshal(query)
 	if err != nil {
 		return nil, nil, err
 	}
-	bson.Unmarshal(data, &mapQuery)
+	json.Unmarshal(data, &mapQuery)
 
 	pageInfo, err := i.db.FindManyPaging(models.CollectionInMessage, mapQuery, "-_id", query.Page, query.Limit, &message)
 	if err != nil {

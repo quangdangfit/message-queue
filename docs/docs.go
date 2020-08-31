@@ -76,6 +76,72 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/in_messages": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get list in messages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "In Messages"
+                ],
+                "summary": "get list in messages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "origin_code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "origin_model",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "routing_key.group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "routing_key.name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "routing_key.value",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        },
+                        "headers": {
+                            "Token": {
+                                "type": "string",
+                                "description": "qwerty"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/out_messages": {
             "get": {
                 "security": [
@@ -408,6 +474,29 @@ var doc = `{
                     "type": "object"
                 },
                 "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.InMsgQueryParam": {
+            "type": "object",
+            "properties": {
+                "origin_code": {
+                    "type": "string"
+                },
+                "origin_model": {
+                    "type": "string"
+                },
+                "routing_key.group": {
+                    "type": "string"
+                },
+                "routing_key.name": {
+                    "type": "string"
+                },
+                "routing_key.value": {
+                    "type": "integer"
+                },
+                "status": {
                     "type": "string"
                 }
             }
