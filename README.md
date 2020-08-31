@@ -19,7 +19,8 @@ mode: # 0: run publisher and consumer, 1: run publisher, 2: run consumer
 
 ![](https://i.imgur.com/Eh1KZAK.png)
 
-* Publish message:
+#### Publish message:
+* **REST**:
 ```
 curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 --header 'Content-Type: application/json' \
@@ -40,6 +41,36 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 | origin_model | string        | NO       | NO       | Object model                      |
 | origin_code  | string        | NO       | NO       | Object code                       |
 
+* **RPC**:
+Service support rpc for publishing, create the client as below to call rpc:
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/rpc"
+)
+
+func main() {
+	body := map[string]interface{}{
+		"routing_key": "order.create",
+		"payload": "quang dep trai",
+	}
+	client, err := rpc.Dial("tcp", "localhost:1234")
+	if err != nil {
+		log.Fatal("dialing:", err)
+	}
+
+	var reply string
+	err = client.Call("OutRPC.Publish", body, &reply)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(reply)
+}
+```
 
 #### Diagram
 ![alt text](https://i.imgur.com/KwUNR1V.png)
