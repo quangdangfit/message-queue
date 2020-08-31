@@ -71,6 +71,8 @@ func (i *inService) List(ctx context.Context, query *schema.InMsgQueryParam) (*[
 func (i *inService) CronRetry() error {
 	query := schema.InMsgQueryParam{
 		Status: models.InMessageStatusWaitRetry,
+		Page:   1,
+		Limit:  RetryInMessageLimit,
 	}
 
 	messages, _, _ := i.msgRepo.List(&query)

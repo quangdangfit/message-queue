@@ -64,6 +64,7 @@ func (o *outService) Publish(ctx context.Context, message *models.OutMessage) er
 func (o *outService) CronResend() error {
 	query := schema.OutMsgQueryParam{
 		Status: models.OutMessageStatusWait,
+		Page:   1,
 		Limit:  ResendOutMessageLimit,
 	}
 	messages, _, _ := o.repo.List(&query)

@@ -27,7 +27,7 @@ func NewCron(inService services.InService, outService services.OutService) *Cron
 // @Success 200 {object} app.Response
 // @Router /api/v1/cron/resend [post]
 func (cron *Cron) Resend(c *gin.Context) {
-	logger.Info("Start cronjob resend wait messages")
+	logger.Info("Start cronjob resend `wait` messages")
 	go cron.outService.CronResend()
 	app.ResOK(c)
 }
@@ -40,7 +40,7 @@ func (cron *Cron) Resend(c *gin.Context) {
 // @Success 200 {object} app.Response
 // @Router /api/v1/cron/retry [post]
 func (cron *Cron) Retry(c *gin.Context) {
-	logger.Info("Start cronjob resend wait messages")
+	logger.Info("Start cronjob resend `wait` messages")
 	go cron.inService.CronRetry()
 	app.ResOK(c)
 }
@@ -53,7 +53,7 @@ func (cron *Cron) Retry(c *gin.Context) {
 // @Success 200 {object} app.Response
 // @Router /api/v1/cron/retry_previous [post]
 func (cron *Cron) RetryPrevious(c *gin.Context) {
-	logger.Info("Start cronjob resend wait previous messages")
+	logger.Info("Start cronjob resend `wait previous` messages")
 	go cron.inService.CronRetryPrevious()
 	app.ResOK(c)
 }
