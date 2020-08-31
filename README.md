@@ -34,14 +34,8 @@ curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
 }'
 ```
 
-| Fields       | Type          | Required | Not Null | Description                       |
-|:-------------|:-------------:|:--------:|:--------:|:----------------------------------|
-| routing_key  | string        | YES      | YES      | Routing key                       |
-| payload      | json          | YES      | YES      | Message content (json)            |
-| origin_model | string        | NO       | NO       | Object model                      |
-| origin_code  | string        | NO       | NO       | Object code                       |
-
 * **RPC**:
+
 Service support rpc for publishing, create the client as below to call rpc:
 ```go
 package main
@@ -54,8 +48,12 @@ import (
 
 func main() {
 	body := map[string]interface{}{
-		"routing_key": "order.create",
-		"payload": "quang dep trai",
+		"routing_key": "routing.key",
+        "payload": map[string]interface{}{
+            "name": "This is message",
+        },
+        "origin_code": "CODE",
+        "origin_model": "MODEL",
 	}
 	client, err := rpc.Dial("tcp", "localhost:1234")
 	if err != nil {
@@ -71,6 +69,15 @@ func main() {
 	fmt.Println(reply)
 }
 ```
+
+* **Body**:
+
+| Fields       | Type          | Required | Not Null | Description                       |
+|:-------------|:-------------:|:--------:|:--------:|:----------------------------------|
+| routing_key  | string        | YES      | YES      | Routing key                       |
+| payload      | json          | YES      | YES      | Message content (json)            |
+| origin_model | string        | NO       | NO       | Object model                      |
+| origin_code  | string        | NO       | NO       | Object code                       |
 
 #### Diagram
 ![alt text](https://i.imgur.com/KwUNR1V.png)
