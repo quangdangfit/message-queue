@@ -13,7 +13,7 @@ require (
 	github.com/mailru/easyjson v0.7.2 // indirect
 	github.com/manucorporat/try v0.0.0-20170609134256-2a0c6b941d52
 	github.com/mattn/go-isatty v0.0.9 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/quangdangfit/gosdk v1.0.8
 	github.com/spf13/viper v1.7.0
 	github.com/streadway/amqp v1.0.0

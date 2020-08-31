@@ -1,7 +1,9 @@
 package main
 
 import (
+	"net"
 	"net/http"
+	"net/rpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,6 +11,7 @@ import (
 	"github.com/quangdangfit/gosdk/utils/logger"
 
 	"message-queue/app"
+	"message-queue/app/grpc"
 	"message-queue/app/router"
 	"message-queue/app/services"
 	"message-queue/config"
@@ -28,7 +31,7 @@ func main() {
 			logger.Info("Listening at port: " + port)
 			err := e.Run(":" + port)
 			if err != nil && err != http.ErrServerClosed {
-				logger.Error(err)
+				logger.Fatal(err)
 			}
 		}()
 	}
@@ -41,6 +44,27 @@ func main() {
 		})
 	}
 
+	// Run RPC for publishing
+	container.Invoke(func(
+		outRPC *grpc.OutRPC,
+	) {
+		rpc.RegisterName("OutRPC", outRPC)
+
+		logger.Info("Listening RPC at port 1234!")
+		listener, err := net.Listen("tcp", ":1234")
+		if err != nil {
+			logger.Fatal("ListenTCP error:", err)
+		}
+
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				logger.Fatal("Accept error:", err)
+			}
+			go rpc.ServeConn(conn)
+		}
+	})
+
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 10 seconds.
 	quit := make(chan os.Signal)
@@ -48,5 +72,4 @@ func main() {
 	<-quit
 	close(quit)
 	logger.Info("Shutting down")
-
 }

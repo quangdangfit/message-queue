@@ -6,6 +6,7 @@ import (
 
 	"message-queue/app/api"
 	"message-queue/app/dbs"
+	"message-queue/app/grpc"
 	"message-queue/app/queue"
 	repoImpl "message-queue/app/repositories/impl"
 	serviceImpl "message-queue/app/services/impl"
@@ -42,6 +43,12 @@ func BuildContainer() *dig.Container {
 	err = api.Inject(container)
 	if err != nil {
 		logger.Error("Failed to inject APIs", err)
+	}
+
+	// Inject RPC
+	err = grpc.Inject(container)
+	if err != nil {
+		logger.Error("Failed to inject RPC", err)
 	}
 
 	return container
