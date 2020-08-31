@@ -1,7 +1,7 @@
 # Message Queue Service
 ### Golang, Gin, AMQP, MongDB
 
-#### Setup
+### Setup
 * Create config file: `cp config/config.sample.yaml config/config.yaml`
 * Config database and amqp config
 config/config.yaml
@@ -13,13 +13,13 @@ mode: # 0: run publisher and consumer, 1: run publisher, 2: run consumer
 
 * Install require packages: `go mod vendor`
 
-#### Startup
+### Startup
 * Run: `go run -mod=vendor main.go`
 * Document at: http://localhost:8080/swagger/index.html
 
 ![](https://i.imgur.com/Eh1KZAK.png)
 
-#### Publish message:
+### Publish message:
 * **REST**:
 ```
 curl --location --request POST 'localhost:8080/api/v1/queue/messages' \
@@ -49,11 +49,11 @@ import (
 func main() {
 	body := map[string]interface{}{
 		"routing_key": "routing.key",
-        "payload": map[string]interface{}{
-            "name": "This is message",
-        },
-        "origin_code": "CODE",
-        "origin_model": "MODEL",
+		"payload": map[string]interface{}{
+			"name": "This is message",
+		},
+		"origin_code":  "CODE",
+		"origin_model": "MODEL",
 	}
 	client, err := rpc.Dial("tcp", "localhost:1234")
 	if err != nil {
@@ -79,11 +79,11 @@ func main() {
 | origin_model | string        | NO       | NO       | Object model                      |
 | origin_code  | string        | NO       | NO       | Object code                       |
 
-#### Diagram
+### Diagram
 ![alt text](https://i.imgur.com/KwUNR1V.png)
 
 
-#### Structure
+### Structure
 ```
 ├── app  
 │   ├── api             # Handle request & response
@@ -101,9 +101,9 @@ func main() {
 │   └── utils           # Utilities
 ```
 
-#### 📙 Libraries
+### 📙 Libraries
 - [Gin](https://godoc.org/github.com/gin-gonic/gin)
 - [AMQP](https://godoc.org/github.com/streadway/amqp)
 
-#### Contributing
+### Contributing
 If you want to contribute to this boilerplate, clone the repository and just start making pull requests.
