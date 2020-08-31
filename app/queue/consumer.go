@@ -21,11 +21,6 @@ const (
 
 type Consumer interface {
 	Consume() chan *models.InMessage
-	parseMessageFromDelivery(msg amqp.Delivery) (*models.InMessage, error)
-	reconnect(retryTime int) (<-chan amqp.Delivery, error)
-	subscribe() (<-chan amqp.Delivery, error)
-	startConsuming(deliveries <-chan amqp.Delivery)
-	pushToMsgChan(msg amqp.Delivery)
 }
 
 type consumer struct {

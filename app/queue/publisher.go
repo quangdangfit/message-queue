@@ -13,7 +13,6 @@ import (
 
 type Publisher interface {
 	Publish(message *models.OutMessage, reliable bool) error
-	confirmOne(message *models.OutMessage, confirms <-chan amqp.Confirmation) bool
 }
 
 type publisher struct {
