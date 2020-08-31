@@ -7,8 +7,6 @@ import (
 	"message-queue/config"
 )
 
-var Database database.Mongo
-
 type IDatabase interface {
 	database.Mongo
 }
