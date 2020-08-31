@@ -8,10 +8,6 @@ import (
 	"message-queue/pkg/app"
 )
 
-const (
-	RetryInMessageLimit = 100
-)
-
 type Cron struct {
 	inService  services.InService
 	outService services.OutService
@@ -45,7 +41,7 @@ func (cron *Cron) Resend(c *gin.Context) {
 // @Router /api/v1/cron/retry [post]
 func (cron *Cron) Retry(c *gin.Context) {
 	logger.Info("Start cronjob resend wait messages")
-	go cron.inService.CronRetry(RetryInMessageLimit)
+	go cron.inService.CronRetry()
 	app.ResOK(c)
 }
 
@@ -58,6 +54,6 @@ func (cron *Cron) Retry(c *gin.Context) {
 // @Router /api/v1/cron/retry_previous [post]
 func (cron *Cron) RetryPrevious(c *gin.Context) {
 	logger.Info("Start cronjob resend wait previous messages")
-	go cron.inService.CronRetryPrevious(RetryInMessageLimit)
+	go cron.inService.CronRetryPrevious()
 	app.ResOK(c)
 }

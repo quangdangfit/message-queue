@@ -23,6 +23,7 @@ const (
 	RequestTimeout         = 60
 	DefaultMaxRetryTimes   = 3
 	DefaultConsumerThreads = 10
+	RetryInMessageLimit    = 100
 )
 
 type inService struct {
@@ -56,12 +57,12 @@ func (i *inService) Consume() {
 	}
 }
 
-func (i *inService) CronRetry(limit int) error {
+func (i *inService) CronRetry() error {
 	query := schema.InMsgQueryParam{
 		Status: models.InMessageStatusWaitRetry,
 	}
 
-	messages, _ := i.inRepo.List(&query, limit)
+	messages, _, _ := i.inRepo.List(&query)
 	if messages == nil {
 		logger.Info("[Retry Message] Not found any wait_retry message!")
 		return nil
@@ -89,11 +90,13 @@ func (i *inService) CronRetry(limit int) error {
 	return nil
 }
 
-func (i *inService) CronRetryPrevious(limit int) error {
+func (i *inService) CronRetryPrevious() error {
 	query := schema.InMsgQueryParam{
 		Status: models.InMessageStatusWaitPrevMsg,
+		Page:   1,
+		Limit:  RetryInMessageLimit,
 	}
-	messages, _ := i.inRepo.List(&query, limit)
+	messages, _, _ := i.inRepo.List(&query)
 	if messages == nil {
 		logger.Info("[Retry Prev Message] Not found any wait_prev message!")
 		return nil
