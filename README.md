@@ -17,7 +17,7 @@ mode: # 0: run publisher and consumer, 1: run publisher, 2: run consumer
 * Run: `go run -mod=vendor main.go`
 * Document at: http://localhost:8080/swagger/index.html
 
-![](https://i.imgur.com/mDqajOH.png)
+![](https://i.imgur.com/Eh1KZAK.png)
 
 * Publish message:
 ```
