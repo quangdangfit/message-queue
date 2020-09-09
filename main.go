@@ -53,13 +53,13 @@ func main() {
 		logger.Info("Listening RPC at port 1234!")
 		listener, err := net.Listen("tcp", ":1234")
 		if err != nil {
-			logger.Fatal("ListenTCP error:", err)
+			logger.Fatal("ListenTCP error: ", err)
 		}
 
 		for {
 			conn, err := listener.Accept()
 			if err != nil {
-				logger.Fatal("Accept error:", err)
+				logger.Fatal("Accept error: ", err)
 			}
 			go rpc.ServeConn(conn)
 		}
